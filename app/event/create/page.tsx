@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 TODO:
 
 style page
-link user inputs to firebase
+link to firebase
 have calendar route to this page (once calendar is done)
 
 */
@@ -44,13 +44,8 @@ export default function CreateEvent() {
                     </div>
 
                     <div>
-                        <Label>Event Date</Label>
-                        <Input type="date"></Input>
-                    </div>
-
-                    <div>
-                        <Label>Event Time</Label>
-                        <Input type="time"></Input>
+                        <Label>Event Date & Time</Label>
+                        <Input type="datetime-local"></Input>
                     </div>
 
                     <div>
