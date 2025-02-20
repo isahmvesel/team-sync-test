@@ -22,8 +22,8 @@ export default function Home() {
         />
 
         <div className="flex justify-between mt-6">
-          <button className="px-4 py-2 bg-gray-700 text-white rounded-md">Register</button>"
-          <button className="px-4 py-2 bg-gray-700 text-white rounded-md">Log in</button>"
+          <button className="px-4 py-2 bg-gray-700 text-white rounded-md">Register</button>
+          <button className="px-4 py-2 bg-gray-700 text-white rounded-md">Log in</button>
         </div>
         
 
