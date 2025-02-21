@@ -2,7 +2,7 @@
 
 import "./event-view.css";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,17 +10,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
-import { db } from '../../../utils/firebaseConfig';
-import { doc, getDoc } from "firebase/firestore";
+import { useState, useEffect } from 'react';
+import { db } from "../../../utils/firebaseConfig";
+import { doc, getDoc, DocumentData } from "firebase/firestore";
 
 /*
 
 TODO:
 
-style page
 figure out how to pass specific event to the page
 connect back button to wherever
 
@@ -28,45 +28,51 @@ connect back button to wherever
 
 export default function ViewEvent() {
 
-    const getEventData = async (docId) => {
+  const [data, setData] = useState<DocumentData | null>(null);
+  const docId = "JPl1zo2uBRy0BNJZCybm";
 
-        try {
+  useEffect(() => {
 
-            const docRef = doc(db, "Event", docId);
-            const docSnap = await getDoc(docRef);
+    const fetchDocument = async () => {
+      const docRef = doc(db, "Event", docId);
+      const docSnap = await getDoc(docRef);
 
-            if (docSnap.exists()) {
-                return docSnap.data();
-            } else {
-                console.log("data doesn't exist");
-                return null;
-            }
-
-        } catch (error) {
-            console.error("Error fetching document: ", error);
-        }
+      if (docSnap.exists()) {
+        setData(docSnap.data());
+      } else {
+        console.log("data can't be found.");
+      }
 
     };
 
-    const docId = "TPnTQ4mNzBUombOjgcXx";
-    const data = getEventData(docId);
+    fetchDocument();
 
-    return (
+  }, []);
 
-        <Card>
-            <CardHeader>
-                <CardTitle>Name Placeholder</CardTitle>
-                <CardDescription>Description placeholder</CardDescription>
-            </CardHeader>
+  return (
 
-            <CardContent>
-                <div className="event-info-div">
-                    <Label>Time placeholder</Label>
-                    <Label>Location placeholder</Label>
-                </div>
-            </CardContent>
-        </Card>
+    <div className="flex items-center justify-center">
+      <Card className="w-full max-w-md p-6 shadow-lg bg-white rounded-xl">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold">{data?.name || "Error loading event name."}</CardTitle>
+          <CardDescription className="text-sm font-medium text-gray-600 mb-4">{data?.description || ""}</CardDescription>
+        </CardHeader>
 
-    );
+        <CardContent>
+          <div className="mb-4">
+            <Label className="text-sm font-medium">Date & Time: {data?.datetime.toDate().toLocaleString("en-US") || "Error loading date."}</Label>
+          </div>
 
+          <div className="mb-4">
+            <Label className="text-sm font-medium">Location: {data?.location || "N/A"}</Label>
+          </div>
+        </CardContent>
+
+        <CardFooter>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Back</Button>
+        </CardFooter>
+      </Card>
+    </div>
+
+  );
 }
