@@ -1,12 +1,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../utils/firebaseConfig.js";
+
 
 export default function Profile() {
   const [userId, setUserId] = useState("testid"); 
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState("");
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        setUserId("testuser");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth]);
 
   const fetchProfileImage = async () => {
     try {
