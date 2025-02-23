@@ -3,18 +3,20 @@ import Image from "next/image";
 import Link from 'next/link';
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from 'react';
-import { auth } from "../app/Firebase/config";
+import { auth, db } from "../app/Firebase/config";
+import { setDocument, viewDocument } from "../utils/firebaseHelper.js"
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 
 export default function Home() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   //const auth = getAuth();
 
-  const changeUsernameInput = (e) => {
-    setUsername(e.target.value);
+  const changeEmailInput = (e) => {
+    setEmail(e.target.value);
   }
 
   const changePasswordInput = (e) => {
@@ -23,23 +25,28 @@ export default function Home() {
 
   const handleLogin = async () => {
     try {
-      console.log('trying login | USER:' + username + "@dummydomain.com | PASSWORD:" + password + "\n");
-      const response = await fetch( "/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-
-      await signInWithEmailAndPassword(auth, username + "@dummydomain.com", password);
-      console.log('User signed in: ' + { username, password });
-      //TODO: Bind calendar page navigation to successful login, 
-    } catch (err: any) {
-      setError(err.message);
-      console.log('login failed\n');
-      //TODO: Display error message on fail
+      console.log("trying login with EMAIL:" + email + " | PASSWORD:" + password + "\n");
+  
+      // Fetch user data from Firestore
+      const usersRef = collection(db, "User");
+      const q = query(usersRef, where("Email", "==", email));
+      const querySnapshot = await getDocs(q);
+      const userData = await viewDocument("User", querySnapshot.docs[0].id);
+      
+      if (userData == null) {
+        setError("Account with this email not found");
+      }
+  
+      if (userData.Email == email && userData.Password == password) {
+        console.log("Login successful:", userData);
+        window.location.href = "/Calendar"; // Redirect on success
+      } else {
+        setError("Invalid email or password.");
+        console.log("Login failed: Incorrect credentials.");
+      }
+    } catch (error) {
+      setError("Error logging in.");
+      console.error("Login error: ", error);
     }
   }
 
@@ -49,19 +56,19 @@ export default function Home() {
           <h1 className="text-black text-center text-5xl underline text-bold">Team Sync</h1>
 
         <ul className="list-inside text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="text-black mb-2 flex items-center gap-2" >
-            <span>Username:</span>
+          <li className="text-black mb-2 flex justify-between items-center gap-2" >
+            <span>Email:</span>
             <input
             type="text"
             style={{ backgroundColor: "rgb(180, 180, 180)" , borderColor: "rgb(100, 100, 100)"}}
             className="border rounded px-2 py-1 text-black placeholder-[rgb(70,70,70)]"
-            placeholder="Enter username"
-            value={username}
-            onChange={changeUsernameInput}
-          />
+            placeholder="Enter email"
+            value={email}
+            onChange={changeEmailInput}
+            />
           </li>
 
-          <li className="text-black mb-2 flex items-center gap-2" >
+          <li className="text-black mb-2 flex justify-between items-center gap-2" >
             <span>Password:</span>
             <input
             type="text"
@@ -70,14 +77,14 @@ export default function Home() {
             placeholder="Enter password"
             value={password}
             onChange={changePasswordInput}
-          />
+            />
           </li>
         </ul>
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-black/[.70] text-black transition-colors flex items-center justify-center hover:bg-[#f2f2f2] hover:text-[#ffffff] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-28"
-            href="/Calendar"
+            className="rounded-full border border-solid border-black/[.08] dark:border-black/[.70] text-black transition-colors flex items-center justify-center hover:bg-[#222222] hover:text-[#ffffff] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-28"
+            //href="/Calendar"
             //target="_blank"
             rel="noopener noreferrer"
             onClick={handleLogin}
@@ -92,8 +99,8 @@ export default function Home() {
             Log in
           </a>
           <Link
-            className="rounded-full border border-solid border-black/[.08] dark:border-black/[.70] text-black transition-colors flex items-center justify-center hover:bg-[#f2f2f2] hover:text-[#ffffff] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="/Register"
+            className="rounded-full border border-solid border-black/[.08] dark:border-black/[.70] text-black transition-colors flex items-center justify-center hover:bg-[#222222] hover:text-[#ffffff] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
+            href="/RegisterSample"
             //target="_blank"
             rel="noopener noreferrer"
           >
