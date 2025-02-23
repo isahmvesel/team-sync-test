@@ -13,14 +13,7 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
-
-  // Handle file upload
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setProfilePicture(event.target.files[0]);
-    }
-  };
+  
 
   // Handle registration logic
   const handleRegister = async () => {
@@ -29,14 +22,11 @@ export default function Register() {
       return;
     }
     alert(`Email Registered: ${email}, username: ${username}`);
-    // TODO: Send data to Firebase here
-    // Add user details to Firestore
-
     try {
       const docRef = await addDoc(collection(db, "User"), {
         email: email,
         username: username,
-        password: password, // ⚠ WARNING: Store passwords securely using Firebase Auth!
+        password: password,
       });    
       console.log("User registered with ID: ", docRef.id);
       alert(`User Registered: ${username}`);
@@ -106,19 +96,7 @@ export default function Register() {
             />
           </div>
 
-          {/* Profile Picture Upload */}
-          <div className="mb-4 flex flex-col items-center">
-            <Label className="text-sm font-medium">Profile Picture</Label>
-            <Input type="file" accept="image/*" onChange={handleFileChange} className="mt-2" />
-            
-            {/* Avatar Preview */}
-            {profilePicture && (
-              <Avatar className="mt-2 w-20 h-20">
-                <AvatarImage src={URL.createObjectURL(profilePicture)} />
-                <AvatarFallback>PP</AvatarFallback>
-              </Avatar>
-            )}
-          </div>
+          
 
           {/* Register Button */}
           <Button 
