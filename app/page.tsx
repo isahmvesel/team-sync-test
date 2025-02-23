@@ -26,18 +26,17 @@ export default function Home() {
   const handleLogin = async () => {
     try {
       console.log("trying login with EMAIL:" + email + " | PASSWORD:" + password + "\n");
-  
+      setError();
+
       // Fetch user data from Firestore
       const usersRef = collection(db, "User");
-      const q = query(usersRef, where("Email", "==", email));
+      const q = query(usersRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
       const userData = await viewDocument("User", querySnapshot.docs[0].id);
       
       if (userData == null) {
         setError("Account with this email not found");
-      }
-  
-      if (userData.Email == email && userData.Password == password) {
+      } else if (userData.email == email && userData.password == password) {
         console.log("Login successful:", userData);
         window.location.href = "/Calendar"; // Redirect on success
       } else {
@@ -45,7 +44,7 @@ export default function Home() {
         console.log("Login failed: Incorrect credentials.");
       }
     } catch (error) {
-      setError("Error logging in.");
+      setError("Email not found.");
       console.error("Login error: ", error);
     }
   }
@@ -106,6 +105,10 @@ export default function Home() {
           >
             Sign up
           </Link>
+        </div>
+
+        <div className="flex text-[rgb(200,0,0)] gap-4 items-center flex-col sm:flex-row">
+          {error}
         </div>
       </main>
       
