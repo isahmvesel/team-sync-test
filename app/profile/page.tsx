@@ -7,7 +7,7 @@ import { collection, addDoc } from "firebase/firestore";
 export default function Profile() {
     const [value, setValue] = useState('');
 
-    const handleSubmit = async (event) => {
+    const handleSubmit = async (event:  React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
             const docRef = await addDoc(collection(db, "items"), {

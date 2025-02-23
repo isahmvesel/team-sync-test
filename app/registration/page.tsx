@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../../utils/firebaseConfig"; 
 
 export default function Register() {
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
@@ -21,13 +23,32 @@ export default function Register() {
   };
 
   // Handle registration logic
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-    alert(`User Registered: ${username}, Display Name: ${displayName}`);
+    alert(`Email Registered: ${email}, username: ${username}`);
     // TODO: Send data to Firebase here
+    // Add user details to Firestore
+
+    try {
+      const docRef = await addDoc(collection(db, "User"), {
+        email: email,
+        username: username,
+        password: password, // ⚠ WARNING: Store passwords securely using Firebase Auth!
+      });    
+      console.log("User registered with ID: ", docRef.id);
+      alert(`User Registered: ${username}`);
+
+      // Reset form fields
+      setEmail("");
+      setUsername("");
+      setPassword("");
+      setConfirmPassword("");
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
   };
 
   return (
@@ -39,12 +60,12 @@ export default function Register() {
         <CardContent>
           {/* Username */}
           <div className="mb-4">
-            <Label className="text-sm font-medium">Username</Label>
+            <Label className="text-sm font-medium">Email</Label>
             <Input 
               type="text" 
-              placeholder="Enter username" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)}
               className="mt-1"
             />
           </div>
@@ -54,9 +75,9 @@ export default function Register() {
             <Label className="text-sm font-medium">Display Name</Label>
             <Input 
               type="text" 
-              placeholder="Enter display name" 
-              value={displayName} 
-              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Enter username name" 
+              value={username} 
+              onChange={(e) => setUsername(e.target.value)}
               className="mt-1"
             />
           </div>
