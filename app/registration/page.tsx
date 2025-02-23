@@ -3,12 +3,13 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig"; 
 
 export default function Register() {
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -95,15 +96,20 @@ export default function Register() {
           </div>
 
           {/* Profile Picture Upload */}
+
           <div className="mb-4 flex flex-col items-center">
             <Label className="text-sm font-medium">Profile Picture</Label>
-            <Input type="file" accept="image/*" className="mt-2" />
-
-            {/* Avatar Preview (Static Placeholder) */}
-            <Avatar className="mt-2 w-20 h-20">
-              <AvatarImage src="" />
-              <AvatarFallback>PP</AvatarFallback>
-            </Avatar>
+            <Input 
+              type="file"
+              accept="image/*"
+              className="mt-2" 
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setProfilePicture(e.target.files[0]); // Save the file in state
+                }
+              }} 
+              />
+              
           </div>
 
           {/* Register Button */}
