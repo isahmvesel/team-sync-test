@@ -8,15 +8,6 @@ body {
     margin: 5%;
 }
 
-.event-info-div {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    margin: 0.5%;
-}
-
 button {
     margin-left: 3%;
     margin-right: 3%;

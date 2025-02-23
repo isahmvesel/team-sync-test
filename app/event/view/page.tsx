@@ -69,8 +69,9 @@ export default function ViewEvent() {
         </CardContent>
 
         <CardFooter>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Back</Button>
-        </CardFooter>
+          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Back</Button>
+          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Modify</Button>
+          </CardFooter>
       </Card>
     </div>
 
