@@ -13,9 +13,7 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
 
-  // Handle registration logic
   const handleRegister = async () => {
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
@@ -96,7 +94,17 @@ export default function Register() {
             />
           </div>
 
-          
+          {/* Profile Picture Upload */}
+          <div className="mb-4 flex flex-col items-center">
+            <Label className="text-sm font-medium">Profile Picture</Label>
+            <Input type="file" accept="image/*" className="mt-2" />
+
+            {/* Avatar Preview (Static Placeholder) */}
+            <Avatar className="mt-2 w-20 h-20">
+              <AvatarImage src="" />
+              <AvatarFallback>PP</AvatarFallback>
+            </Avatar>
+          </div>
 
           {/* Register Button */}
           <Button 
