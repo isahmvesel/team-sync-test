@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getDocs, query, where } from "firebase/firestore"; // Import Firestore functions
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig"; 
 
@@ -25,6 +26,17 @@ export default function Register() {
     
     try {
       
+      // Check if email already exists in the Firestore database
+      const userQuery = query(collection(db, "User"), where("email", "==", email));
+      const querySnapshot = await getDocs(userQuery);
+      alert("in heree");
+
+      if (!querySnapshot.empty) {
+        // Email already exists
+        alert("Email is already registered. Please use a different email.");
+        return;
+      }
+
       /* profile picture send to database (TODO, DOESNT WORK RIGHT NOW)*/
       /*
       let profilePictureURL = "";
