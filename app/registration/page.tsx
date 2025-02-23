@@ -21,7 +21,35 @@ export default function Register() {
       return;
     }
     alert(`Email Registered: ${email}, username: ${username}`);
+
+    
     try {
+      
+      /* profile picture send to database (TODO, DOESNT WORK RIGHT NOW)*/
+      /*
+      let profilePictureURL = "";
+      if (profilePicture) {
+        try {
+          const storage = getStorage(); // Initialize storage
+          const storageRef = ref(storage, `profile_pictures/${profilePicture.name}`); // File path
+          
+          alert("Uploading...");
+          alert("Uploading file: " + profilePicture.name);
+
+          await uploadBytes(storageRef, profilePicture); // Upload file
+          alert("upload complete");
+
+          profilePictureURL = await getDownloadURL(storageRef); // Get file URL
+          alert("got here");
+        } catch (error) {
+          console.error("Error uploading profile picture:", error);
+          alert("Failed to upload profile picture.");
+          return;
+        }
+      }
+      */
+      /* email, username, password send to database */
+
       const docRef = await addDoc(collection(db, "User"), {
         email: email,
         username: username,
@@ -35,11 +63,11 @@ export default function Register() {
       setUsername("");
       setPassword("");
       setConfirmPassword("");
+      setProfilePicture(null);
     } catch (e) {
       console.error("Error adding document: ", e);
     }
   };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <Card className="w-full max-w-md p-6 shadow-lg bg-white rounded-xl">
