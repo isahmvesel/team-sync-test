@@ -70,12 +70,17 @@ export default function Register() {
       console.log("User registered with ID: ", docRef.id);
       alert(`User Registered: ${username}`);
 
-      // Reset form fields
+      // reset form fields
       setEmail("");
       setUsername("");
       setPassword("");
       setConfirmPassword("");
       setProfilePicture(null);
+
+      /* redirect to profile page*/
+
+      alert("successyay");
+      window.location.href = "/profile";
     } catch (e) {
       console.error("Error adding document: ", e);
     }
