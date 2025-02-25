@@ -14,12 +14,15 @@ import {
 import { Label } from "@/components/ui/label";
 
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from "next/navigation"
 import { db } from "../../../utils/firebaseConfig";
 import { doc, getDoc, DocumentData } from "firebase/firestore";
 
 /*
 
 TODO:
+
+fix date time situation
 
 figure out how to pass specific event to the page
 connect back button to wherever
@@ -29,11 +32,16 @@ connect back button to wherever
 export default function ViewEvent() {
 
   const [data, setData] = useState<DocumentData | null>(null);
-  const docId = "JPl1zo2uBRy0BNJZCybm";
+  const docId = useSearchParams().get("docId");
 
   useEffect(() => {
 
     const fetchDocument = async () => {
+
+      if (!docId) {
+        return "";
+      }
+
       const docRef = doc(db, "Event", docId);
       const docSnap = await getDoc(docRef);
 
@@ -49,6 +57,11 @@ export default function ViewEvent() {
 
   }, []);
 
+  const router = useRouter();
+  const modifyNavigation = () => {
+    router.push(`/event/modify?docId=${docId}`);
+  }
+
   return (
 
     <div className="flex items-center justify-center">
@@ -60,7 +73,7 @@ export default function ViewEvent() {
 
         <CardContent>
           <div className="mb-4">
-            <Label className="text-sm font-medium">Date & Time: {data?.datetime.toDate().toLocaleString("en-US") || "Error loading date."}</Label>
+            <Label className="text-sm font-medium">Date & Time: {data?.datetime ? data.datetime.toDate().toLocaleString("en-US") : "Error loading date."}</Label>
           </div>
 
           <div className="mb-4">
@@ -70,7 +83,7 @@ export default function ViewEvent() {
 
         <CardFooter>
           <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Back</Button>
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Modify</Button>
+          <Button onClick={modifyNavigation}className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Modify</Button>
           </CardFooter>
       </Card>
     </div>
