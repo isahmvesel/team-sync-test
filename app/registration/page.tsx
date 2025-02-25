@@ -21,11 +21,12 @@ export default function Register() {
       alert("Passwords do not match!");
       return;
     }
-    alert(`Email Registered: ${email}, username: ${username}`);
-
-    
+    if (!email.trim()) {
+      alert("Email cannot be blank.");
+      return;
+    }    
     try {
-      
+
       // Check if email already exists in the Firestore database
       const userQuery = query(collection(db, "User"), where("email", "==", email));
       const querySnapshot = await getDocs(userQuery);
@@ -67,8 +68,6 @@ export default function Register() {
         username: username,
         password: password,
       });    
-      console.log("User registered with ID: ", docRef.id);
-      alert(`User Registered: ${username}`);
 
       // reset form fields
       setEmail("");
@@ -79,7 +78,7 @@ export default function Register() {
 
       /* redirect to profile page*/
 
-      alert("successyay");
+      alert(`Email Registered: ${email}, username: ${username}`);
       window.location.href = "/profile";
     } catch (e) {
       console.error("Error adding document: ", e);
