@@ -1,15 +1,16 @@
 "use client";
 import { useState } from "react";
+import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getDocs, query, where } from "firebase/firestore"; // Import Firestore functions
+import { getDocs, query, where } from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig"; 
 
 export default function Register() {
+  const profilePicInputRef = useRef(null); // Add a ref to the file input
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -17,56 +18,40 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
     if (!email.trim()) {
       alert("Email cannot be blank.");
       return;
-    }    
+    }
+    if (!password.trim()) {
+      alert("Password cannot be blank.");
+      return;
+    }
+    if (!username.trim()) {
+      alert("Username cannot be blank.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
     try {
 
       // Check if email already exists in the Firestore database
       const userQuery = query(collection(db, "User"), where("email", "==", email));
       const querySnapshot = await getDocs(userQuery);
-      alert("in heree");
-
       if (!querySnapshot.empty) {
         // Email already exists
         alert("Email is already registered. Please use a different email.");
         return;
       }
 
-      /* profile picture send to database (TODO, DOESNT WORK RIGHT NOW)*/
-      /*
-      let profilePictureURL = "";
-      if (profilePicture) {
-        try {
-          const storage = getStorage(); // Initialize storage
-          const storageRef = ref(storage, `profile_pictures/${profilePicture.name}`); // File path
-          
-          alert("Uploading...");
-          alert("Uploading file: " + profilePicture.name);
-
-          await uploadBytes(storageRef, profilePicture); // Upload file
-          alert("upload complete");
-
-          profilePictureURL = await getDownloadURL(storageRef); // Get file URL
-          alert("got here");
-        } catch (error) {
-          console.error("Error uploading profile picture:", error);
-          alert("Failed to upload profile picture.");
-          return;
-        }
-      }
-      */
       /* email, username, password send to database */
 
       const docRef = await addDoc(collection(db, "User"), {
         email: email,
         username: username,
         password: password,
+        //profilePicture: profilePicture,
       });    
 
       // reset form fields
@@ -74,7 +59,9 @@ export default function Register() {
       setUsername("");
       setPassword("");
       setConfirmPassword("");
-      setProfilePicture(null);
+      if (profilePicInputRef.current) {} {
+        profilePicInputRef.current.value = ""; // Manually reset the file input
+      }
 
       /* redirect to profile page*/
 
@@ -147,6 +134,7 @@ export default function Register() {
               type="file"
               accept="image/*"
               className="mt-2" 
+              ref={profilePicInputRef} // Attach ref to the file input
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
                   setProfilePicture(e.target.files[0]); // Save the file in state
