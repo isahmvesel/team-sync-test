@@ -81,12 +81,12 @@ export default function CreateEvent() {
                     <form>
                         <div className="mb-4">
                             <Label className="text-sm font-medium">Event Name</Label>
-                            <Input placeholder="My Event" value={eventName} onChange={(e) => setEventName(e.target.value)} className="mt-1"></Input>
+                            <Input placeholder="New Event Name" value={eventName} onChange={(e) => setEventName(e.target.value)} className="mt-1"></Input>
                         </div>
 
                         <div className="mb-4">
                             <Label className="text-sm font-medium">Event Description</Label>
-                            <Textarea placeholder="My event description" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1"></Textarea>
+                            <Textarea placeholder="New event description" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1"></Textarea>
                         </div>
 
                         <div className="mb-4">
@@ -96,7 +96,7 @@ export default function CreateEvent() {
 
                         <div className="mb-4">
                             <Label className="text-sm font-medium">Event Location</Label>
-                            <Input placeholder="My Event Location" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1"></Input>
+                            <Input placeholder="New Event Location" value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1"></Input>
                         </div>
                     </form>
                 </CardContent>

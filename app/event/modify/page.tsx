@@ -1,8 +1,8 @@
 "use client";
 
-import "./event-modify.css"
+import "./event-modify.css";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,21 +10,23 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { db } from '../../../utils/firebaseConfig';
-import { collection, 
-    addDoc, 
-    Timestamp, 
-    DocumentData,
-    doc,
-    getDoc,
-    setDoc,
+import { db } from "../../../utils/firebaseConfig";
+import {
+  collection,
+  addDoc,
+  Timestamp,
+  DocumentData,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc
 } from "firebase/firestore";
 
 /*
@@ -35,154 +37,156 @@ fix date time situation
 
 */
 
-
 export default function ModifyEvent() {
+  const router = useRouter();
+  const docId = useSearchParams().get("docId");
 
-    const router = useRouter();
-    const docId = useSearchParams().get("docId");
+  // fetch data on load
+  const [data, setData] = useState<DocumentData | null>(null);
+  const [updatedData, setUpdatedData] = useState({
+    name: "",
+    description: "",
+    datetime: "",
+    location: ""
+  });
+  const [loading, setLoading] = useState(true);
 
-    const [data, setData] = useState<DocumentData | null>(null);
+  // format datetime variable for displaying
+  const formatDatetime = (timestamp: Timestamp) => {
+    if (!timestamp) {
+      return "";
+    }
 
-    const [eventName, setEventName] = useState("");
-    const [nameChange, setNameChange] = useState(false);
-    const [description, setDescription] = useState("");
-    const [descriptionChange, setDescriptionChange] = useState(false);
-    const [datetime, setDatetime] = useState("");
-    const [datetimeChange, setDatetimeChange] = useState(false);
-    const [location, setLocation] = useState("");
-    const [locationChange, setLocationChange] = useState(false);
+    const date = timestamp.toDate();
 
-    // parses data from the firestore when docId is read
-    useEffect(() => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const mins = String(date.getMinutes()).padStart(2, "0");
 
-        if (!docId) {
-            return;
-        }
+    return `${year}-${month}-${day}T${hours}:${mins}`;
+  };
 
-        const fetchDocument = async () => {
-          const docRef = doc(db, "Event", docId);
-          const docSnap = await getDoc(docRef);
-    
-          if (docSnap.exists()) {
-            setData(docSnap.data());
-          } else {
-            console.log("data can't be found.");
-          }
-    
-        };
-    
-        fetchDocument();
-    
-      }, [docId]);
+  useEffect(() => {
+    if (!docId) {
+      return;
+    }
 
-    
-    // formats the date time to be displayed
-    const formatDatetime = (timestamp : Timestamp | null) => {
-        if (!timestamp) {
-            return "";
-        }
+    const fetchEvent = async () => {
+      try {
 
-        const date = timestamp.toDate();
-        
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        const hours = String(date.getHours()).padStart(2, "0");
-        const mins = String(date.getMinutes()).padStart(2, "0");
+        const docRef = doc(db, "Event", docId);
+        const docSnap = await getDoc(docRef);
 
-        const dateString = `${year}-${month}-${day}T${hours}:${mins}`;
-        return dateString;
-    };
-
-
-
-    // handles the changing of the input fields
-
-    const handleName = (event) => {
-        if (event.target.value != "") {
-            setEventName(event.target.value);
-            setNameChange(true);
+        if (docSnap.exists()) {
+          const fetchedData = docSnap.data();
+          setData(fetchedData);
+          setUpdatedData((prevData) => ({
+            name: prevData.name || fetchedData.name || "",
+            description: prevData.description || fetchedData.description || "",
+            datetime: prevData.datetime || formatDatetime(fetchedData.datetime) || "",
+            location: prevData.location || fetchedData.location || ""
+          }));
         } else {
-            setNameChange(false);
-        }
-    }
-
-    const handleDescription = (event) => {
-        setDescription(event.target.value);
-        setDescriptionChange(true);
-    }
-
-    const handleDatetime = (event) => {
-        setDatetime(event.target.value);
-        setDatetimeChange(true);
-    }
-
-    const handleLocation = (event) => {
-        setLocation(event.target.value);
-        setLocationChange(true);
-    }
-
-
-    // handles the navigation buttons
-
-    const handleCancel = () => {
-        router.push(`/event/view?docId=${docId}`);
-    };
-
-    const handleSave = () => {
-        if (docId) {
-            setDoc(doc(db, "Event", docId), {
-                name: nameChange ? eventName : data?.name,
-                description: descriptionChange ? description : data?.description,
-                datetime: datetimeChange ? Timestamp.fromDate(new Date(datetime)) : data?.datetime,
-                location: locationChange ? location : data?.location
-            });
+          console.error("Event not found.");
         }
 
-        router.push(`/event/view?docId=${docId}`);
+      } catch (error) {
+        console.error("Error fetching event data.", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    return (
+    fetchEvent();
+  }, [docId]);
 
-        <div className="flex items-center justify-center">
-            <Card className="w-full max-w-md p-6 shadow-lg bg-white rounded-xl">
-                <CardHeader>
-                    <CardTitle className="text-center text-2xl font-semibold">
-                        Modify Event
-                    </CardTitle>
-                </CardHeader>
+  if (loading) {
+    return <p>Loading ...</p>;
+  }
+  if (!data) {
+    return <p>Error: Event not found.</p>;
+  }
 
-                <CardContent>
-                    <form>
-                        <div className="mb-4">
-                            <Label className="text-sm font-medium">Event Name</Label>
-                            <Input placeholder={data?.name} className="mt-1" onChange={handleName}></Input>
-                        </div>
+  // change updatedData variable on input field change
+  const handleDataChange = (e: { target: { name: any; value: any; }; }) => {
+    const {name, value} = e.target;
+    setUpdatedData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
-                        <div className="mb-4">
-                            <Label className="text-sm font-medium">Event Description</Label>
-                            <Textarea placeholder={data?.description || "No event description."} className="mt-1" onChange={handleDescription}></Textarea>
-                        </div>
+  // handle navigation when buttons are pressed
 
-                        <div className="mb-4">
-                            <Label className="text-sm font-medium">Event Date & Time</Label>
-                            <Input type="datetime-local" value={formatDatetime(data?.datetime)} className="mt-1"></Input>
-                        </div>
+  const handleBack = () => {
+    router.push(`/event/view?docId=${docId}`);
+  }
 
-                        <div className="mb-4">
-                            <Label className="text-sm font-medium">Event Location</Label>
-                            <Input placeholder={data?.location || "No event location"} className="mt-1" onChange={handleLocation}></Input>
-                        </div>
-                    </form>
-                </CardContent>
+  const handleSave = async () => {
+    if (!docId) {
+      console.error("No docId found.");
+      return;
+    }
 
-                <CardFooter>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all" onClick={handleCancel}>Cancel</Button>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all" onClick={handleSave}>Save</Button>
-                </CardFooter>
-            </Card>
-        </div>
+    try {
+      const docRef = doc(db, "Event", docId);
 
-    );
+      await updateDoc(docRef, {
+        name: updatedData.name,
+        description: updatedData.description,
+        datetime: Timestamp.fromDate(new Date(updatedData.datetime)),
+        location: updatedData.location
+      });
+
+      alert("Event successfully updated.");
+      router.push(`/event/view?docId=${docId}`);
+    } catch (error) {
+      console.error("Error updating event", error);
+      alert("There was an error updating the event.");
+    }
+  }
+  
+  return (
+
+    <div className="flex items-center justify-center">
+        <Card className="w-full max-w-md p-6 shadow-lg bg-white rounded-xl">
+            <CardHeader>
+                <CardTitle className="text-center text-2xl font-semibold">Modify Event</CardTitle>
+            </CardHeader>
+
+            <CardContent>
+                <form>
+                    <div className="mb-4">
+                        <Label className="text-sm font-medium">Event Name</Label>
+                        <Input name="name" value={updatedData.name} onChange={handleDataChange} className="mt-1"></Input>
+                    </div>
+
+                    <div className="mb-4">
+                        <Label className="text-sm font-medium">Event Description</Label>
+                        <Textarea name="description" value={updatedData.description} onChange={handleDataChange} className="mt-1"></Textarea>
+                    </div>
+
+                    <div className="mb-4">
+                        <Label className="text-sm font-medium">Event Date & Time</Label>
+                        <Input name="datetime" type="datetime-local" value={updatedData.datetime} onChange={handleDataChange} className="mt-1"></Input>
+                    </div>
+
+                    <div className="mb-4">
+                        <Label className="text-sm font-medium">Event Location</Label>
+                        <Input name="location" value={updatedData.location} onChange={handleDataChange} className="mt-1"></Input>
+                    </div>
+                </form>
+            </CardContent>
+
+            <CardFooter>
+                <Button onClick={handleBack} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Back</Button>
+                <Button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Save</Button>
+            </CardFooter>
+        </Card>
+    </div>
+
+  );
 
 }
