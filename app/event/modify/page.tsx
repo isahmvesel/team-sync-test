@@ -26,7 +26,7 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc
+  updateDoc,
 } from "firebase/firestore";
 
 /*
@@ -47,7 +47,7 @@ export default function ModifyEvent() {
     name: "",
     description: "",
     datetime: "",
-    location: ""
+    location: "",
   });
   const [loading, setLoading] = useState(true);
 
@@ -75,7 +75,6 @@ export default function ModifyEvent() {
 
     const fetchEvent = async () => {
       try {
-
         const docRef = doc(db, "Event", docId);
         const docSnap = await getDoc(docRef);
 
@@ -85,13 +84,13 @@ export default function ModifyEvent() {
           setUpdatedData((prevData) => ({
             name: prevData.name || fetchedData.name || "",
             description: prevData.description || fetchedData.description || "",
-            datetime: prevData.datetime || formatDatetime(fetchedData.datetime) || "",
-            location: prevData.location || fetchedData.location || ""
+            datetime:
+              prevData.datetime || formatDatetime(fetchedData.datetime) || "",
+            location: prevData.location || fetchedData.location || "",
           }));
         } else {
           console.error("Event not found.");
         }
-
       } catch (error) {
         console.error("Error fetching event data.", error);
       } finally {
@@ -110,8 +109,8 @@ export default function ModifyEvent() {
   }
 
   // change updatedData variable on input field change
-  const handleDataChange = (e: { target: { name: any; value: any; }; }) => {
-    const {name, value} = e.target;
+  const handleDataChange = (e: { target: { name: any; value: any } }) => {
+    const { name, value } = e.target;
     setUpdatedData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -122,7 +121,7 @@ export default function ModifyEvent() {
 
   const handleBack = () => {
     router.push(`/event/view?docId=${docId}`);
-  }
+  };
 
   const handleSave = async () => {
     if (!docId) {
@@ -133,11 +132,21 @@ export default function ModifyEvent() {
     try {
       const docRef = doc(db, "Event", docId);
 
+      if (updatedData.name == "") {
+        alert("Event Name field is required.");
+        return;
+      }
+
+      if (updatedData.datetime == "") {
+        alert("Date & Time field is required.");
+        return;
+      }
+
       await updateDoc(docRef, {
         name: updatedData.name,
         description: updatedData.description,
         datetime: Timestamp.fromDate(new Date(updatedData.datetime)),
-        location: updatedData.location
+        location: updatedData.location,
       });
 
       alert("Event successfully updated.");
@@ -146,47 +155,77 @@ export default function ModifyEvent() {
       console.error("Error updating event", error);
       alert("There was an error updating the event.");
     }
-  }
-  
+  };
+
   return (
-
     <div className="flex items-center justify-center">
-        <Card className="w-full max-w-md p-6 shadow-lg bg-white rounded-xl">
-            <CardHeader>
-                <CardTitle className="text-center text-2xl font-semibold">Modify Event</CardTitle>
-            </CardHeader>
+      <Card className="w-full max-w-md p-6 shadow-lg bg-white rounded-xl">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-semibold">
+            Modify Event
+          </CardTitle>
+        </CardHeader>
 
-            <CardContent>
-                <form>
-                    <div className="mb-4">
-                        <Label className="text-sm font-medium">Event Name</Label>
-                        <Input name="name" value={updatedData.name} onChange={handleDataChange} className="mt-1"></Input>
-                    </div>
+        <CardContent>
+          <form>
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Event Name</Label>
+              <Input
+                name="name"
+                value={updatedData.name}
+                onChange={handleDataChange}
+                className="mt-1"
+              ></Input>
+            </div>
 
-                    <div className="mb-4">
-                        <Label className="text-sm font-medium">Event Description</Label>
-                        <Textarea name="description" value={updatedData.description} onChange={handleDataChange} className="mt-1"></Textarea>
-                    </div>
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Event Description</Label>
+              <Textarea
+                name="description"
+                value={updatedData.description}
+                onChange={handleDataChange}
+                className="mt-1"
+              ></Textarea>
+            </div>
 
-                    <div className="mb-4">
-                        <Label className="text-sm font-medium">Event Date & Time</Label>
-                        <Input name="datetime" type="datetime-local" value={updatedData.datetime} onChange={handleDataChange} className="mt-1"></Input>
-                    </div>
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Event Date & Time</Label>
+              <Input
+                name="datetime"
+                type="datetime-local"
+                value={updatedData.datetime}
+                onChange={handleDataChange}
+                className="mt-1"
+              ></Input>
+            </div>
 
-                    <div className="mb-4">
-                        <Label className="text-sm font-medium">Event Location</Label>
-                        <Input name="location" value={updatedData.location} onChange={handleDataChange} className="mt-1"></Input>
-                    </div>
-                </form>
-            </CardContent>
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Event Location</Label>
+              <Input
+                name="location"
+                value={updatedData.location}
+                onChange={handleDataChange}
+                className="mt-1"
+              ></Input>
+            </div>
+          </form>
+        </CardContent>
 
-            <CardFooter>
-                <Button onClick={handleBack} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Back</Button>
-                <Button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">Save</Button>
-            </CardFooter>
-        </Card>
+        <CardFooter>
+          <Button
+            onClick={handleBack}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+          >
+            Back
+          </Button>
+          <Button
+            onClick={handleSave}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+          >
+            Save
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
-
   );
-
 }

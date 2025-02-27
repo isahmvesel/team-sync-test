@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 
 import { useState } from 'react';
+import { useRouter } from "next/navigation";
 import { db } from '../../../utils/firebaseConfig';
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 
@@ -29,6 +30,8 @@ have calendar route to this page (once calendar is done)
 
 export default function CreateEvent() {
 
+    const router = useRouter();
+
     const [eventName, setEventName] = useState("");
     const [description, setDescription] = useState("")
     const [datetime, setDatetime] = useState("");
@@ -37,8 +40,13 @@ export default function CreateEvent() {
 
     const eventCreation = async () => {
 
-        if (!eventName || !datetime) {
-            alert("Event Name and Date & Time fields are required.");
+        if (!eventName) {
+            alert("Event Name field is required.");
+            return;
+        }
+
+        if (!datetime) {
+            alert("Date & Time field is required.");
             return;
         }
 
@@ -54,11 +62,7 @@ export default function CreateEvent() {
             });
 
             alert("Event successfulling created!");
-
-            setEventName("");
-            setDescription("");
-            setDatetime("");
-            setLocation("");
+            router.push(`/event/view?docId=${docref.id}`);
 
         } catch (error) {
             console.error("Error adding document: ", error);
