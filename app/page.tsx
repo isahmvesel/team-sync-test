@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from 'next/link';
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from 'react';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { auth, db } from "../app/Firebase/config";
 import { setDocument, viewDocument } from "../utils/firebaseHelper.js"
 import { collection, query, where, getDocs } from "firebase/firestore";

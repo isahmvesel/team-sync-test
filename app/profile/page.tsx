@@ -11,7 +11,7 @@ export default function Profile() {
     const [docId, setDocId] = useState('');
     const [value, setValue] = useState('');
 
-    const handleSubmit = async (event: { preventDefault: () => void; }) => {
+    const handleSubmit = async (event:  React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
             await setDocument("items", docId, { name: value });
