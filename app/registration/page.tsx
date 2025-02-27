@@ -10,7 +10,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig"; 
 
 export default function Register() {
-  const profilePicInputRef = useRef(null); // Add a ref to the file input
+  const profilePicInputRef = useRef(null);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -60,7 +60,7 @@ export default function Register() {
       setPassword("");
       setConfirmPassword("");
       if (profilePicInputRef.current) {} {
-        profilePicInputRef.current.value = ""; // Manually reset the file input
+        profilePicInputRef.current.value = "";
       }
 
       /* redirect to profile page*/
@@ -141,7 +141,6 @@ export default function Register() {
                 }
               }} 
               />
-              
           </div>
 
           {/* Register Button */}
