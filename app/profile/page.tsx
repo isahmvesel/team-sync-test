@@ -1,44 +1,104 @@
-"use client"
+"use client";
 
-import { useState } from 'react';
-import { db } from '../../utils/firebaseConfig.js';
-import { setDocument } from "../../utils/firebaseHelper.js";
-
-import { collection, addDoc} from "firebase/firestore"; 
+import { useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../utils/firebaseConfig.js";
 
 
 export default function Profile() {
-    const [docId, setDocId] = useState('');
-    const [value, setValue] = useState('');
+  const [userId, setUserId] = useState("testid"); 
+  const [image, setImage] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState("");
 
-    const handleSubmit = async (event:  React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        try {
-            await setDocument("items", docId, { name: value });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        setUserId("testuser");
+      }
+    });
 
-            console.log("Document written with ID: ", docId);
-            setDocId('');
-            setValue('');
-        } catch (e) {
-            console.error("Error adding document: ", e);
-        }
-    };
+    return () => unsubscribe();
+  }, [auth]);
 
-    return (
-        <form onSubmit={handleSubmit}>
-            <input
-                type="text"
-                value={docId}
-                onChange={(e) => setDocId(e.target.value)}
-                placeholder="Enter Key"
-            />
-            <input
-                type="text"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="Enter Value"
-            />
-            <button type="submit">Add Item</button>
-        </form>
-    );
+  const fetchProfileImage = async () => {
+    try {
+      const res = await fetch(`/api/getProfileImage?userId=${userId}`);
+      const data = await res.json();
+      if (res.ok && data.file) {
+        const timestamp = new Date().getTime();
+        setPreview(`/uploads/${data.file}?timestamp=${timestamp}`);
+      } else {
+        setPreview("/default-profile.jpg");
+      }
+    } catch {
+      setPreview("/default-profile.jpg");
+    }
+  };
+
+  useEffect(() => {
+    fetchProfileImage();
+  }, [userId]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!image) return alert("Please select an image!");
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append("image", image);
+
+    try {
+      const res = await fetch(`/api/upload?userId=${userId}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        alert("Upload successful!");
+        fetchProfileImage();
+      } else {
+        const errorData = await res.json();
+        alert(`Upload failed! ${errorData.error || "Unknown error"}`);
+      }
+    } catch {
+      alert("Upload failed! Network error.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <h1>Profile Page</h1>
+      <h2>User ID: {userId}</h2>
+      <img
+        src={preview}
+        alt="Profile"
+        width="200"
+        style={{
+          borderRadius: "10px",
+          objectFit: "cover",
+          border: "2px solid #ccc",
+        }}
+        onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
+      />
+      <form onSubmit={handleUpload} style={{ marginTop: "20px" }}>
+        <input type="file" accept="image/*" onChange={handleFileChange} required />
+        <button type="submit" disabled={uploading}>
+          {uploading ? "Uploading..." : "Upload Image"}
+        </button>
+      </form>
+    </div>
+  );
 }
