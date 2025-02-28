@@ -25,30 +25,44 @@ export default function Home() {
   }
 
   const handleLogin = async () => {
-    try {
-      console.log("trying login with EMAIL:" + email + " | PASSWORD:" + password + "\n");
-      setError();
+    console.log("trying login with EMAIL:" + email + " | PASSWORD:" + password + "\n");
+    setError();
 
-      // Fetch user data from Firestore
-      const usersRef = collection(db, "User");
-      const q = query(usersRef, where("email", "==", email));
-      const querySnapshot = await getDocs(q);
-      const userData = await viewDocument("User", querySnapshot.docs[0].id);
-      
-      if (userData == null) {
-        setError("Account with this email not found");
-      } else if (userData.email == email && userData.password == password) {
-        console.log("Login successful:", userData);
-        window.location.href = "/Calendar"; // Redirect on success
-      } else {
-        setError("Invalid email or password.");
-        console.log("Login failed: Incorrect credentials.");
-      }
-    } catch (error) {
-      setError("Email not found.");
-      console.error("Login error: ", error);
+    if (!email) {
+      setError("Email cannot be blank.");
+      return;
     }
-  }
+
+    if (!password) {
+      setError("Password cannot be blank.");
+      return;
+    }
+
+    // Fetch user data from Firestore
+    const usersRef = collection(db, "Users");
+    const q = query(usersRef, where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot || querySnapshot.empty) {
+      setError("Account with this email not found.");
+      return;
+    }
+    
+    const userData = await viewDocument("Users", querySnapshot.docs[0].id);
+
+    if (userData == null) {
+      setError("Incorrect password.");
+      return;
+    } else if (userData.email == email && userData.password == password) {
+      console.log("Login successful:", userData);
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      window.location.href = "/Calendar"; // Redirect on success
+    } else {
+      setError("Invalid email or password.");
+      console.log("Login failed: Incorrect credentials.");
+    }
+}
 
   return (
     <div className="bg-[rgb(230,230,230)] grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">

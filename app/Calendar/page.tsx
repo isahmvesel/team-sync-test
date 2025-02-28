@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import NavBar from "@/components/navigation-bar";
 
 export default function Calendar() {
     return (
@@ -15,6 +16,10 @@ export default function Calendar() {
                     Back
                 </Link>
             </main>
+
+            <NavBar />
         </div>
+
+        
     )
 }
