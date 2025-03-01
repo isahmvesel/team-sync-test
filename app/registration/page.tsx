@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDocs, query, where } from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig"; 
+import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Register() {
   const profilePicInputRef = useRef(null);
@@ -36,32 +37,56 @@ export default function Register() {
     }
     try {
 
-      // Check if email already exists in the Firestore database
+      /* Check if email already exists in the Firestore database */
       const userQuery = query(collection(db, "User"), where("email", "==", email));
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
-        // Email already exists
         alert("Email is already registered. Please use a different email.");
         return;
       }
 
       /* email, username, password send to database */
+      try {
+        await setDocument("Users", email, {
+          email: email,
+          username: username,
+          password: password,
+        })
+      } catch (e) {
+        console.error("Error");
+      }
 
-      const docRef = await addDoc(collection(db, "User"), {
-        email: email,
-        username: username,
-        password: password,
-        //profilePicture: profilePicture,
-      });    
+      /* profile picture send to database */
+
+      if (profilePicture) {
+        const formData = new FormData();
+        formData.append("image", profilePicture);
+        try {
+          const res = await fetch(`/api/upload?userId=${email}`, {
+            method: "POST",
+            body: formData,
+          });
+  
+          if (res.ok) {
+            alert("Upload successful!");
+          } else {
+            const errorData = await res.json();
+            alert(`Upload failed! ${errorData.error || "Unknown error"}`);
+          }
+        } catch (error) {
+          alert("Upload failed! Network error.");
+        }
+      }
 
       // reset form fields
       setEmail("");
       setUsername("");
       setPassword("");
       setConfirmPassword("");
-      if (profilePicInputRef.current) {} {
-        profilePicInputRef.current.value = "";
-      }
+      setProfilePicture(null);
+      // if (profilePicInputRef.current) {} {
+      //   profilePicInputRef.current.value = "";
+      // }
 
       /* redirect to profile page*/
 
