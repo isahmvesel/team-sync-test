@@ -24,9 +24,9 @@ const NavBar = () => {
 
 const NavBarItem = ({ href, icon, active }: { href: string; icon: React.ReactNode; active: boolean }) => (
     <Link href={href}>
-        <Button variant={active ? "default" : "ghost"} className="flex flex-col items-center">
+        <Button variant={active ? "default" : "ghost"} className="flex flex-col items-center w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 relative">
             {/*{icon}*/}
-            <Image src={icon} alt="Icon" width={30} height={30} />
+            <Image src={icon} alt="Icon" fill className="object-contain" />
         </Button>
     </Link>
 );
