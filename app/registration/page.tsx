@@ -60,7 +60,7 @@ export default function Register() {
       setPassword("");
       setConfirmPassword("");
       if (profilePicInputRef.current) {} {
-        profilePicInputRef.current.value = "";
+      //  profilePicInputRef.current.value = "";
       }
 
       /* redirect to profile page*/

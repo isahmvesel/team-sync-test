@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../utils/firebaseConfig.js";
-
+import { auth, db } from "../../utils/firebaseConfig.js";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Profile() {
-  const [userId, setUserId] = useState("testid"); 
+  const [userId, setUserId] = useState("testuser");
+  const [userData, setUserData] = useState({ email: "", name: "", password: "" });
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState("");
+  const [preview, setPreview] = useState("/default-profile.jpg");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -19,21 +20,29 @@ export default function Profile() {
         setUserId("testuser");
       }
     });
-
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userDocRef = doc(db, "Users", userId);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        setUserData(userDoc.data());
+      }
+    };
+    fetchUserData();
+  }, [userId]);
 
   const fetchProfileImage = async () => {
     try {
       const res = await fetch(`/api/getProfileImage?userId=${userId}`);
       const data = await res.json();
       if (res.ok && data.file) {
-        const timestamp = new Date().getTime();
-        setPreview(`/uploads/${data.file}?timestamp=${timestamp}`);
-      } else {
-        setPreview("/default-profile.jpg");
+        setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
       }
-    } catch {
+    } catch (error) {
+      alert(`Error fetching profile image: ${error.message || "Unknown error"}`);
       setPreview("/default-profile.jpg");
     }
   };
@@ -52,9 +61,12 @@ export default function Profile() {
 
   const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!image) return alert("Please select an image!");
-    setUploading(true);
+    if (!image) {
+      alert("Please select an image!");
+      return;
+    }
 
+    setUploading(true);
     const formData = new FormData();
     formData.append("image", image);
 
@@ -64,15 +76,15 @@ export default function Profile() {
         body: formData,
       });
 
-      if (res.ok) {
-        alert("Upload successful!");
-        fetchProfileImage();
-      } else {
-        const errorData = await res.json();
-        alert(`Upload failed! ${errorData.error || "Unknown error"}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
       }
-    } catch {
-      alert("Upload failed! Network error.");
+
+      alert("Upload successful!");
+      fetchProfileImage();
+    } catch (error) {
+      alert(`Upload failed! ${error.message || "Unknown error"}`);
     } finally {
       setUploading(false);
     }
@@ -82,15 +94,13 @@ export default function Profile() {
     <div style={{ textAlign: "center", marginTop: "20px" }}>
       <h1>Profile Page</h1>
       <h2>User ID: {userId}</h2>
+      <p>Email: {userData.email}</p>
+      <p>Username: {userData.name}</p>
       <img
         src={preview}
         alt="Profile"
         width="200"
-        style={{
-          borderRadius: "10px",
-          objectFit: "cover",
-          border: "2px solid #ccc",
-        }}
+        style={{ borderRadius: "10px", objectFit: "cover", border: "2px solid #ccc" }}
         onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
       />
       <form onSubmit={handleUpload} style={{ marginTop: "20px" }}>
