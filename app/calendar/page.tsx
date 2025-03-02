@@ -14,15 +14,19 @@ import { useState, useEffect } from "react";
 
 interface EventData {
   name: string;
+  allDay: boolean;
   datetime: {
     seconds: number;
   };
-  allDay: boolean;
+  end: {
+    seconds: number;
+  };
 }
 
 interface CalendarEvent {
   title: string;
   start: number;
+  end: number | undefined;
   allDay: boolean;
 }
 
@@ -56,8 +60,11 @@ export default function Calendar() {
 
                 newEventList.push({
                   title: eventData.name,
-                  start: eventData.datetime.seconds * 1000,
                   allDay: eventData.allDay,
+                  start: eventData.datetime.seconds * 1000,
+
+                  //! TODO: set actual end time when updated in the database
+                  end: eventData.allDay ? undefined : eventData.datetime.seconds * 1000,
                 });
               }
               setEventList(newEventList);
