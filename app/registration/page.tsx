@@ -18,8 +18,15 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleRegister = async () => {
+  /* 
+   * Function that handles register button on click. Checks if email already exists and 
+   * creates new user with docID as email. Profile picture is saved with Marco's API calls
+   */
+
+  const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!email.trim()) {
+      return alert("Email cannot be blank.");
       alert("Email cannot be blank.");
       return;
     }
@@ -45,19 +52,14 @@ export default function Register() {
         return;
       }
 
-      /* email, username, password send to database */
-      try {
-        await setDocument("Users", email, {
-          email: email,
-          username: username,
-          password: password,
-        })
-      } catch (e) {
-        console.error("Error");
-      }
+      /* email, username, password send to database. userID is docRef */
+      const docRef = await addDoc(collection(db, "Users"), {
+        email: email,
+        username: username,
+        password: password,
+      });    
 
-      /* profile picture send to database */
-
+      /* profile picture save with Marco API */
       if (profilePicture) {
         const formData = new FormData();
         formData.append("image", profilePicture);
@@ -78,18 +80,14 @@ export default function Register() {
         }
       }
 
-      // reset form fields
+      /* reset form fields */
       setEmail("");
       setUsername("");
       setPassword("");
       setConfirmPassword("");
       setProfilePicture(null);
-      // if (profilePicInputRef.current) {} {
-      //   profilePicInputRef.current.value = "";
-      // }
 
       /* redirect to profile page*/
-
       alert(`Email Registered: ${email}, username: ${username}`);
       window.location.href = "/profile";
     } catch (e) {
