@@ -23,10 +23,8 @@ export default function Register() {
    * creates new user with docID as email. Profile picture is saved with Marco's API calls
    */
 
-  const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleRegister = async () => {
     if (!email.trim()) {
-      return alert("Email cannot be blank.");
       alert("Email cannot be blank.");
       return;
     }
