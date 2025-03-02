@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../utils/firebaseConfig.js";
 import { doc, getDoc } from "firebase/firestore";
+import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Profile() {
   const [userId, setUserId] = useState("testuser");
@@ -25,13 +26,14 @@ export default function Profile() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userDocRef = doc(db, "Users", userId);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        setUserData(userDoc.data());
+      const userDoc = await viewDocument("Users", userId);
+      if (userDoc) {
+        setUserData(userDoc);
       }
     };
-    fetchUserData();
+    if (userId) {
+      fetchUserData();
+    }
   }, [userId]);
 
   const fetchProfileImage = async () => {
@@ -41,14 +43,16 @@ export default function Profile() {
       if (res.ok && data.file) {
         setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       alert(`Error fetching profile image: ${error.message || "Unknown error"}`);
       setPreview("/default-profile.jpg");
     }
   };
 
   useEffect(() => {
-    fetchProfileImage();
+    if (userId) {
+      fetchProfileImage();
+    }
   }, [userId]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,15 +79,13 @@ export default function Profile() {
         method: "POST",
         body: formData,
       });
-
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Upload failed");
       }
-
       alert("Upload successful!");
       fetchProfileImage();
-    } catch (error) {
+    } catch (error: any) {
       alert(`Upload failed! ${error.message || "Unknown error"}`);
     } finally {
       setUploading(false);
@@ -91,21 +93,59 @@ export default function Profile() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "20px" }}>
-      <h1>Profile Page</h1>
-      <h2>User ID: {userId}</h2>
-      <p>Email: {userData.email}</p>
-      <p>Username: {userData.name}</p>
-      <img
-        src={preview}
-        alt="Profile"
-        width="200"
-        style={{ borderRadius: "10px", objectFit: "cover", border: "2px solid #ccc" }}
-        onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
-      />
+    <div
+      style={{
+        maxWidth: "600px",
+        margin: "40px auto",
+        padding: "20px",
+        border: "1px solid #e0e0e0",
+        borderRadius: "8px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        textAlign: "center",
+      }}
+    >
+      <h1 style={{ marginBottom: "20px" }}>Profile Page</h1>
+      <div style={{ marginBottom: "20px" }}>
+        <img
+          src={preview}
+          alt="Profile"
+          width="200"
+          style={{
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "2px solid #ccc",
+          }}
+          onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
+        />
+      </div>
+      <h2 style={{ marginBottom: "10px" }}>User ID: {userId}</h2>
+      <p style={{ margin: "5px 0" }}>
+        <strong>Email:</strong> {userData.email}
+      </p>
+      <p style={{ margin: "5px 0" }}>
+        <strong>Username:</strong> {userData.name}
+      </p>
       <form onSubmit={handleUpload} style={{ marginTop: "20px" }}>
-        <input type="file" accept="image/*" onChange={handleFileChange} required />
-        <button type="submit" disabled={uploading}>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          required
+          style={{ marginBottom: "10px" }}
+        />
+        <br />
+        <button
+          type="submit"
+          disabled={uploading}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#0070f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: uploading ? "not-allowed" : "pointer",
+          }}
+        >
           {uploading ? "Uploading..." : "Upload Image"}
         </button>
       </form>
