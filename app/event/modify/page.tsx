@@ -29,24 +29,19 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-/*
-
-TODO:
-
-fix date time situation
-
-*/
-
 export default function ModifyEvent() {
   const router = useRouter();
   const docId = useSearchParams().get("docId");
 
   // fetch data on load
   const [data, setData] = useState<DocumentData | null>(null);
+  const [allDay, setAllDay] = useState(false);
   const [updatedData, setUpdatedData] = useState({
     name: "",
     description: "",
-    datetime: "",
+    allDay: false,
+    start: "",
+    end: "",
     location: "",
   });
   const [loading, setLoading] = useState(true);
@@ -62,6 +57,11 @@ export default function ModifyEvent() {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
+
+    // if (allDay) {
+    //   return `${year}-${month}-${day}`;
+    // }
+
     const hours = String(date.getHours()).padStart(2, "0");
     const mins = String(date.getMinutes()).padStart(2, "0");
 
@@ -81,11 +81,13 @@ export default function ModifyEvent() {
         if (docSnap.exists()) {
           const fetchedData = docSnap.data();
           setData(fetchedData);
+          setAllDay(fetchedData.allDay);
           setUpdatedData((prevData) => ({
             name: prevData.name || fetchedData.name || "",
             description: prevData.description || fetchedData.description || "",
-            datetime:
-              prevData.datetime || formatDatetime(fetchedData.datetime) || "",
+            allDay: prevData.allDay || fetchedData.allDay || false,
+            start: prevData.start || formatDatetime(fetchedData.start) || "",
+            end: prevData.end || formatDatetime(fetchedData.end) || "",
             location: prevData.location || fetchedData.location || "",
           }));
         } else {
@@ -111,10 +113,24 @@ export default function ModifyEvent() {
   // change updatedData variable on input field change
   const handleDataChange = (e: { target: { name: any; value: any } }) => {
     const { name, value } = e.target;
-    setUpdatedData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+
+    console.log("name:", name);
+    if (allDay && name == "start") {
+      setUpdatedData((prevData) => ({
+        ...prevData,
+        start: `${value}T00:00`,
+      }));
+    } else if (allDay && name == "end") {
+      setUpdatedData((prevData) => ({
+        ...prevData,
+        end: `${value}T23:59`,
+      }));
+    } else {
+      setUpdatedData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
 
   // handle navigation when buttons are pressed
@@ -137,15 +153,30 @@ export default function ModifyEvent() {
         return;
       }
 
-      if (updatedData.datetime == "") {
-        alert("Date & Time field is required.");
+      if (updatedData.start == "" || updatedData.end == "") {
+        alert("Event Start and End Date are required.");
         return;
       }
+
+      const localStartDate = updatedData.start.split("T")[0] + "T00:00";
+      const localEndDate = updatedData.end.split("T")[0] + "T23:59";
+
+      console.log("start:", updatedData.start);
+      console.log("end:", updatedData.end);
+      console.log("start formatted:", localStartDate);
+      console.log("end formatteed:", localEndDate);
+      console.log("all day:", allDay);
 
       await updateDoc(docRef, {
         name: updatedData.name,
         description: updatedData.description,
-        datetime: Timestamp.fromDate(new Date(updatedData.datetime)),
+        allDay: updatedData.allDay,
+        start: allDay
+          ? Timestamp.fromDate(new Date(localStartDate))
+          : Timestamp.fromDate(new Date(updatedData.start)),
+        end: allDay
+          ? Timestamp.fromDate(new Date(localEndDate))
+          : Timestamp.fromDate(new Date(updatedData.end)),
         location: updatedData.location,
       });
 
@@ -188,12 +219,41 @@ export default function ModifyEvent() {
               ></Textarea>
             </div>
 
+            <div className="mb-4 all-day-div">
+              <Label className="text-sm font-medium">All Day?</Label>
+              <input
+                type="checkbox"
+                checked={allDay}
+                onChange={(e) => {
+                  setAllDay(e.target.checked);
+                  setUpdatedData((prevData) => ({
+                    ...prevData,
+                    allDay: !allDay,
+                  }));
+                }}
+                className="ml-3 all-day-checkbox"
+              ></input>
+            </div>
+
             <div className="mb-4">
-              <Label className="text-sm font-medium">Event Date & Time</Label>
+              <Label className="text-sm font-medium">Start Date</Label>
               <Input
-                name="datetime"
-                type="datetime-local"
-                value={updatedData.datetime}
+                name="start"
+                type={updatedData.allDay ? "date" : "datetime-local"}
+                value={
+                  allDay ? updatedData.start.split("T")[0] : updatedData.start
+                }
+                onChange={handleDataChange}
+                className="mt-1"
+              ></Input>
+            </div>
+
+            <div className="mb-4">
+              <Label className="text-sm font-medium">End Date</Label>
+              <Input
+                name="end"
+                type={allDay ? "date" : "datetime-local"}
+                value={allDay ? updatedData.end.split("T")[0] : updatedData.end}
                 onChange={handleDataChange}
                 className="mt-1"
               ></Input>
