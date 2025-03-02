@@ -10,42 +10,71 @@ import { firebaseApp } from "@/utils/firebaseConfig";
 import { db } from '@/utils/firebaseConfig';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { time } from "console";
+import { useState, useEffect } from "react";
+
+interface EventData {
+  name: string;
+  datetime: {
+    seconds: number;
+  };
+  allDay: boolean;
+}
+
+interface CalendarEvent {
+  title: string;
+  start: number;
+  allDay: boolean;
+}
 
 export default function Calendar() {
   const router = useRouter();
   const auth = getAuth(firebaseApp);
+  
+  const [eventList, setEventList] = useState<CalendarEvent[]>([]);
 
-  onAuthStateChanged(auth, async (user) => {
-    //! TODO: fix if statement
-    if (1) {//user) {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async () => {
+      //! TODO: Fix if statement
+      if (1) { // user) {
 
-      // User is signed in, get the UID
-      const user = auth.currentUser;
+        //! TODO: Fix hardcoded UID (For Testing)
+        const uid = 'mxO6ABVshPM5HGrbmnA1PGpeGAI2'; // user.uid;
 
-      //! TODO: remove hard coded UID (for testing)
-      const uid = "mxO6ABVshPM5HGrbmnA1PGpeGAI2"; //user ? user.uid : null;
+        if (uid) {
+          const userDocRef = doc(db, "Users", uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (Array.isArray(userData.events)) {
+              const newEventList = [];
 
-      if (uid) {
-        const userDocRef = doc(db, "Users", uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
+              // Get the events for the user
+              for (let i = 0; i < userData.events.length; i++) {
+                const event = userData.events[i];
+                const eventDoc = await getDoc(event);
+                const eventData = eventDoc.data() as EventData;
 
-          // Get the events for the user
-          for (let i = 0; i < userData.events.length; i++) {
-            const event = userData.events[i];
-            const eventDoc = await getDoc(event);
-            const eventData = eventDoc.data();
-
-            console.log("Event data:", eventData.timestamp);
+                newEventList.push({
+                  title: eventData.name,
+                  start: eventData.datetime.seconds * 1000,
+                  allDay: eventData.allDay,
+                });
+              }
+              setEventList(newEventList);
+            }
+          } else {
+            console.log("No such document!");
           }
-
+        } else {
+          console.error("Invalid UID.");
         }
-        else { console.log("No such document!"); }
-      } else { console.error("Invalid UID."); }
-    } else { console.error("User is not signed in."); }
-  });
+      } else {
+        console.error("User is not signed in.");
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <>
       <FullCalendar
@@ -58,35 +87,19 @@ export default function Calendar() {
             click: () => {
               router.push('/event/create');
             },
-            },
-          }}
-          headerToolbar={{
-            left: 'timeGridDay,timeGridWeek,dayGridMonth',
-            center: 'title',
-            right: 'createEvent today prevYear,prev,next,nextYear'
-          }}
-
-          //! Event Testing
-          events={[
-            {
-              title: 'Event 1',
-              startTime: '11:00:00',
-              endTime: '11:30:00',
-              startRecur: '2025-03-01',
-              endRecur: '2025-03-02',
-            },
-            {
-              title: 'Event 2',
-              startTime: '12:00:00',
-              endTime: '1:30:00',
-              startRecur: '2025-03-01',
-              endRecur: '2025-03-02',
-            },
-          ]}
+          },
+        }}
+        headerToolbar={{
+          left: 'timeGridDay,timeGridWeek,dayGridMonth',
+          center: 'title',
+          right: 'createEvent today prevYear,prev,next,nextYear'
+        }}
+        navLinks={true}
+        events={eventList}
       />
       <style jsx global>{`
         .fc .fc-toolbar-title {
-        font-weight: bold;
+          font-weight: bold;
         }
       `}</style>
     </>
