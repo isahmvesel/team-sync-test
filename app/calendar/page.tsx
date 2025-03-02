@@ -62,9 +62,7 @@ export default function Calendar() {
                   title: eventData.name,
                   allDay: eventData.allDay,
                   start: eventData.datetime.seconds * 1000,
-
-                  //! TODO: set actual end time when updated in the database
-                  end: eventData.allDay ? undefined : eventData.datetime.seconds * 1000,
+                  end: eventData.allDay || eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
                 });
               }
               setEventList(newEventList);
@@ -88,6 +86,9 @@ export default function Calendar() {
         themeSystem='standard'
         plugins={[dayGridPlugin, timeGridPlugin]}
         initialView="dayGridMonth"
+        navLinks={true}
+        //eventInteractive={true}
+        selectable={true}
         customButtons={{
           createEvent: {
             text: 'Create Event',
@@ -101,7 +102,6 @@ export default function Calendar() {
           center: 'title',
           right: 'createEvent today prevYear,prev,next,nextYear'
         }}
-        navLinks={true}
         events={eventList}
       />
       <style jsx global>{`
