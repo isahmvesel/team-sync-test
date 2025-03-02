@@ -6,6 +6,7 @@ import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import { useRouter } from "next/navigation";
+import NavBar from "@/components/ui/navigation-bar";
 import { firebaseApp } from "@/utils/firebaseConfig";
 import { db } from '@/utils/firebaseConfig';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -82,6 +83,7 @@ export default function Calendar() {
 
   return (
     <>
+      {/* <NavBar /> */}
       <FullCalendar
         themeSystem='standard'
         plugins={[dayGridPlugin, timeGridPlugin]}
