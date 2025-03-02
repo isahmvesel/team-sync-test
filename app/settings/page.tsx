@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Settings() {
+  const router = useRouter();
   const [userId, setUserId] = useState("testuser");
   const [formData, setFormData] = useState({ email: "", name: "", password: "" });
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [image, setImage] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState("/default-profile.jpg");
 
   useEffect(() => {
     const auth = getAuth();
@@ -36,11 +41,63 @@ export default function Settings() {
         setLoading(false);
       }
     };
-    fetchUserData();
+
+    const fetchProfileImage = async () => {
+      try {
+        const res = await fetch(`/api/getProfileImage?userId=${userId}`);
+        const data = await res.json();
+        if (res.ok && data.file) {
+          setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
+        }
+      } catch {
+        setPreview("/default-profile.jpg");
+      }
+    };
+
+    if (userId) {
+      fetchUserData();
+      fetchProfileImage();
+    }
   }, [userId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!image) {
+      alert("Please select an image!");
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("image", image);
+
+    try {
+      const res = await fetch(`/api/upload?userId=${userId}`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+      alert("Upload successful!");
+    } catch (error: any) {
+      alert(`Upload failed! ${error.message || "Unknown error"}`);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -49,40 +106,68 @@ export default function Settings() {
     try {
       await setDocument("Users", userId, formData);
       alert("Profile updated successfully!");
-    } catch (error: any) {
-      console.error("Error updating document:", error);
+    } catch {
       alert("Error updating profile.");
     } finally {
       setUpdating(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <div
       style={{
-        maxWidth: "600px",
+        maxWidth: "500px",
         margin: "40px auto",
-        padding: "20px",
-        border: "1px solid #e0e0e0",
-        borderRadius: "8px",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        padding: "25px",
+        borderRadius: "10px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+        backgroundColor: "#fff",
         textAlign: "center",
       }}
     >
-      <h1 style={{ marginBottom: "20px" }}>Settings</h1>
+      <h1 style={{ fontSize: "24px", marginBottom: "15px" }}>Settings</h1>
+
+      {/* Profile Picture Section */}
+      <div style={{ marginBottom: "20px" }}>
+        <img
+          src={preview}
+          alt="Profile"
+          width="150"
+          style={{
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "3px solid #0070f3",
+          }}
+        />
+      </div>
+      <form onSubmit={handleUpload} style={{ marginBottom: "20px" }}>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          required
+          style={{ display: "block", margin: "10px auto" }}
+        />
+        <button
+          type="submit"
+          disabled={uploading}
+          style={{
+            padding: "10px 15px",
+            backgroundColor: uploading ? "#ccc" : "#0070f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: uploading ? "not-allowed" : "pointer",
+            width: "100%",
+          }}
+        >
+          {uploading ? "Uploading..." : "Upload New Image"}
+        </button>
+      </form>
+
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "15px", textAlign: "left" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>
-            Email:
-          </label>
+          <label style={{ fontWeight: "bold", display: "block" }}>Email:</label>
           <input
             type="email"
             name="email"
@@ -90,17 +175,15 @@ export default function Settings() {
             onChange={handleChange}
             style={{
               width: "100%",
-              padding: "8px",
-              borderRadius: "4px",
+              padding: "10px",
+              borderRadius: "5px",
               border: "1px solid #ccc",
             }}
             required
           />
         </div>
         <div style={{ marginBottom: "15px", textAlign: "left" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>
-            Username:
-          </label>
+          <label style={{ fontWeight: "bold", display: "block" }}>Username:</label>
           <input
             type="text"
             name="name"
@@ -108,17 +191,15 @@ export default function Settings() {
             onChange={handleChange}
             style={{
               width: "100%",
-              padding: "8px",
-              borderRadius: "4px",
+              padding: "10px",
+              borderRadius: "5px",
               border: "1px solid #ccc",
             }}
             required
           />
         </div>
         <div style={{ marginBottom: "15px", textAlign: "left" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>
-            Password:
-          </label>
+          <label style={{ fontWeight: "bold", display: "block" }}>Password:</label>
           <input
             type="password"
             name="password"
@@ -126,28 +207,46 @@ export default function Settings() {
             onChange={handleChange}
             style={{
               width: "100%",
-              padding: "8px",
-              borderRadius: "4px",
+              padding: "10px",
+              borderRadius: "5px",
               border: "1px solid #ccc",
             }}
             required
           />
         </div>
+
         <button
           type="submit"
           disabled={updating}
           style={{
-            padding: "10px 20px",
-            backgroundColor: "#0070f3",
+            padding: "10px 15px",
+            backgroundColor: updating ? "#ccc" : "#0070f3",
             color: "#fff",
             border: "none",
-            borderRadius: "4px",
+            borderRadius: "5px",
             cursor: updating ? "not-allowed" : "pointer",
+            width: "100%",
           }}
         >
           {updating ? "Updating..." : "Save Changes"}
         </button>
       </form>
+
+      <button
+        onClick={() => router.push("/profile")}
+        style={{
+          marginTop: "15px",
+          padding: "10px",
+          backgroundColor: "#0070f3",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          width: "100%",
+        }}
+      >
+        Back to Profile
+      </button>
     </div>
   );
 }

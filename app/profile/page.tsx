@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../utils/firebaseConfig.js";
-import { doc, getDoc } from "firebase/firestore";
-import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
+import { auth } from "../../utils/firebaseConfig.js";
+import { viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Profile() {
+  const router = useRouter();
   const [userId, setUserId] = useState("testuser");
-  const [userData, setUserData] = useState({ email: "", name: "", password: "" });
-  const [image, setImage] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [userData, setUserData] = useState({ email: "", name: "" });
   const [preview, setPreview] = useState("/default-profile.jpg");
 
   useEffect(() => {
@@ -31,66 +30,24 @@ export default function Profile() {
         setUserData(userDoc);
       }
     };
+
+    const fetchProfileImage = async () => {
+      try {
+        const res = await fetch(`/api/getProfileImage?userId=${userId}`);
+        const data = await res.json();
+        if (res.ok && data.file) {
+          setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
+        }
+      } catch {
+        setPreview("/default-profile.jpg");
+      }
+    };
+
     if (userId) {
       fetchUserData();
-    }
-  }, [userId]);
-
-  const fetchProfileImage = async () => {
-    try {
-      const res = await fetch(`/api/getProfileImage?userId=${userId}`);
-      const data = await res.json();
-      if (res.ok && data.file) {
-        setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
-      }
-    } catch (error: any) {
-      alert(`Error fetching profile image: ${error.message || "Unknown error"}`);
-      setPreview("/default-profile.jpg");
-    }
-  };
-
-  useEffect(() => {
-    if (userId) {
       fetchProfileImage();
     }
   }, [userId]);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const file = event.target.files[0];
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!image) {
-      alert("Please select an image!");
-      return;
-    }
-
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("image", image);
-
-    try {
-      const res = await fetch(`/api/upload?userId=${userId}`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Upload failed");
-      }
-      alert("Upload successful!");
-      fetchProfileImage();
-    } catch (error: any) {
-      alert(`Upload failed! ${error.message || "Unknown error"}`);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   return (
     <div
@@ -104,51 +61,35 @@ export default function Profile() {
         textAlign: "center",
       }}
     >
-      <h1 style={{ marginBottom: "20px" }}>Profile Page</h1>
-      <div style={{ marginBottom: "20px" }}>
-        <img
-          src={preview}
-          alt="Profile"
-          width="200"
-          style={{
-            borderRadius: "50%",
-            objectFit: "cover",
-            border: "2px solid #ccc",
-          }}
-          onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
-        />
-      </div>
-      <h2 style={{ marginBottom: "10px" }}>User ID: {userId}</h2>
-      <p style={{ margin: "5px 0" }}>
-        <strong>Email:</strong> {userData.email}
-      </p>
-      <p style={{ margin: "5px 0" }}>
-        <strong>Username:</strong> {userData.name}
-      </p>
-      <form onSubmit={handleUpload} style={{ marginTop: "20px" }}>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          required
-          style={{ marginBottom: "10px" }}
-        />
-        <br />
-        <button
-          type="submit"
-          disabled={uploading}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#0070f3",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            cursor: uploading ? "not-allowed" : "pointer",
-          }}
-        >
-          {uploading ? "Uploading..." : "Upload Image"}
-        </button>
-      </form>
+      <h1>Profile Page</h1>
+      <img
+        src={preview}
+        alt="Profile"
+        width="200"
+        style={{
+          borderRadius: "50%",
+          objectFit: "cover",
+          border: "2px solid #ccc",
+        }}
+        onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
+      />
+      <h2>User ID: {userId}</h2>
+      <p><strong>Email:</strong> {userData.email}</p>
+      <p><strong>Username:</strong> {userData.name}</p>
+      <button
+        onClick={() => router.push("/settings")}
+        style={{
+          marginTop: "20px",
+          padding: "10px 20px",
+          backgroundColor: "#0070f3",
+          color: "#fff",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
+      >
+        Go to Settings
+      </button>
     </div>
   );
 }
