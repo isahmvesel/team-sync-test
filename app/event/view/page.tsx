@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import RSVPView from "@/components/ui/rsvp";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -111,6 +112,11 @@ export default function ViewEvent() {
             <Label className="text-sm font-medium">
               Location: {data?.location || "N/A"}
             </Label>
+          </div>
+
+          <div className="mb-1 mt-3">
+            <Label>RSVP Statuses:</Label>
+            <RSVPView eventId={docId}></RSVPView>
           </div>
         </CardContent>
 
