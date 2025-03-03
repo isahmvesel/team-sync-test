@@ -5,13 +5,14 @@ import "./calendar.css";
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
+import listPlugin from '@fullcalendar/list';
 import { useRouter } from "next/navigation";
 // import NavBar from "@/components/ui/navigation-bar";
 import { firebaseApp } from "@/utils/firebaseConfig";
 import { db } from '@/utils/firebaseConfig';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface EventData {
   name: string;
@@ -40,6 +41,7 @@ export default function Calendar() {
   const auth = getAuth(firebaseApp);
   
   const [eventList, setEventList] = useState<CalendarEvent[]>([]);
+  const calendarRef = useRef<FullCalendar>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async () => {
@@ -92,8 +94,9 @@ export default function Calendar() {
     <>
       {/* <NavBar /> */}
       <FullCalendar
+        ref={calendarRef}
         themeSystem='standard'
-        plugins={[dayGridPlugin, timeGridPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
         initialView="dayGridMonth"
         navLinks={true}
         selectable={true}
@@ -106,14 +109,33 @@ export default function Calendar() {
 
         customButtons={{
           createEvent: {
-            text: 'Create Event',
+            text: 'create event',
             click: () => {
               router.push('/event/create');
             },
           },
+          list: {
+            text: 'list',
+            click: () => {
+              const calendarApi = calendarRef.current?.getApi();
+              if (calendarApi?.view.type === 'timeGridDay') {
+                calendarApi.changeView('listDay');
+              } else if (calendarApi?.view.type === 'timeGridWeek') {
+                calendarApi.changeView('listWeek');
+              } else if (calendarApi?.view.type === 'dayGridMonth') {
+                calendarApi.changeView('listMonth');
+              } else if (calendarApi?.view.type === 'listDay') {
+                calendarApi.changeView('timeGridDay');
+              } else if (calendarApi?.view.type === 'listWeek') {
+                calendarApi.changeView('timeGridWeek');
+              } else if (calendarApi?.view.type === 'listMonth') {
+                calendarApi.changeView('dayGridMonth');
+              }
+            },
+          }
         }}
         headerToolbar={{
-          left: 'timeGridDay,timeGridWeek,dayGridMonth',
+          left: 'list timeGridDay,timeGridWeek,dayGridMonth',
           center: 'title',
           right: 'createEvent today prevYear,prev,next,nextYear'
         }}
