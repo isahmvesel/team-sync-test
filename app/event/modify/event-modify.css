@@ -13,3 +13,11 @@ button {
     margin-right: 3%;
 }
 
+.all-day-div {
+    display: flex;
+    align-items: center;
+}
+
+.all-day-checkbox {
+    transform: scale(1.2);
+}
