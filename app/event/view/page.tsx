@@ -113,11 +113,11 @@ export default function ViewEvent() {
               Location: {data?.location || "N/A"}
             </Label>
           </div>
-
+{/* 
           <div className="mb-1 mt-3">
             <Label>RSVP Statuses:</Label>
             <RSVPView eventId={docId}></RSVPView>
-          </div>
+          </div> */}
         </CardContent>
 
         <CardFooter>

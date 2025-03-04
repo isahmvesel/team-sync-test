@@ -15,10 +15,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { db } from "../../../utils/firebaseConfig";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { db } from "@/utils/firebaseConfig";
+import {
+  collection,
+  addDoc,
+  Timestamp,
+  doc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { firebaseApp } from "@/utils/firebaseConfig";
 
 export default function CreateEvent() {
   const router = useRouter();
@@ -30,6 +39,9 @@ export default function CreateEvent() {
   const [endDate, setEndDate] = useState("");
   const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const auth = getAuth(firebaseApp);
+  const uid = auth.currentUser?.uid;
 
   const cancelButton = () => {
     router.push("/calendar");
@@ -89,7 +101,15 @@ export default function CreateEvent() {
           ? Timestamp.fromDate(localEndDate)
           : Timestamp.fromDate(new Date(endDate)),
         location,
+        owner: uid,
       });
+
+      if (uid) {
+        const userDocRef = doc(db, "Users", uid);
+        await updateDoc(userDocRef, {
+          events: arrayUnion(`/Event/${docref.id}`),
+        });
+      }
 
       alert("Event successfulling created!");
       router.push(`/event/view?docId=${docref.id}`);
