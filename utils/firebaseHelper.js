@@ -6,10 +6,10 @@ const auth = getAuth();
 
 async function setDocument(collectionName, docId, data) {
     try {
-        // const user = auth.currentUser;
-        // if (!user) {
-        //     throw new Error("User not authenticated. Cannot write document.");
-        // }
+        const user = auth.currentUser;
+        //if (!user) {
+        //    throw new Error("User not authenticated. Cannot write document.");
+        //}
 
         await setDoc(doc(db, collectionName, docId), data);
         console.log("Document successfully written!");
@@ -21,9 +21,9 @@ async function setDocument(collectionName, docId, data) {
 async function viewDocument(collectionName, docId) {
     try {
         const user = auth.currentUser;
-        if (!user) {
-            throw new Error("User not authenticated. Cannot fetch document.");
-        }
+        //if (!user) {
+        //    throw new Error("User not authenticated. Cannot fetch document.");
+        //}
 
         const documentRef = doc(db, collectionName, docId);
         const documentSnapshot = await getDoc(documentRef);
