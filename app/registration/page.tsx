@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDocs, query, where } from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig"; 
+import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Register() {
   const profilePicInputRef = useRef(null);
@@ -17,8 +18,15 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleRegister = async () => {
+  /* 
+   * Function that handles register button on click. Checks if email already exists and 
+   * creates new user with docID as email. Profile picture is saved with Marco's API calls
+   */
+
+  const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!email.trim()) {
+      return alert("Email cannot be blank.");
       alert("Email cannot be blank.");
       return;
     }
@@ -36,35 +44,50 @@ export default function Register() {
     }
     try {
 
-      // Check if email already exists in the Firestore database
+      /* Check if email already exists in the Firestore database */
       const userQuery = query(collection(db, "User"), where("email", "==", email));
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
-        // Email already exists
         alert("Email is already registered. Please use a different email.");
         return;
       }
 
-      /* email, username, password send to database */
-
-      const docRef = await addDoc(collection(db, "User"), {
+      /* email, username, password send to database. userID is docRef */
+      const docRef = await addDoc(collection(db, "Users"), {
         email: email,
         username: username,
         password: password,
-        //profilePicture: profilePicture,
       });    
 
-      // reset form fields
+      /* profile picture save with Marco API */
+      if (profilePicture) {
+        const formData = new FormData();
+        formData.append("image", profilePicture);
+        try {
+          const res = await fetch(`/api/upload?userId=${email}`, {
+            method: "POST",
+            body: formData,
+          });
+  
+          if (res.ok) {
+            alert("Upload successful!");
+          } else {
+            const errorData = await res.json();
+            alert(`Upload failed! ${errorData.error || "Unknown error"}`);
+          }
+        } catch (error) {
+          alert("Upload failed! Network error.");
+        }
+      }
+
+      /* reset form fields */
       setEmail("");
       setUsername("");
       setPassword("");
       setConfirmPassword("");
-      if (profilePicInputRef.current) {} {
-      //  profilePicInputRef.current.value = "";
-      }
+      setProfilePicture(null);
 
       /* redirect to profile page*/
-
       alert(`Email Registered: ${email}, username: ${username}`);
       window.location.href = "/profile";
     } catch (e) {
