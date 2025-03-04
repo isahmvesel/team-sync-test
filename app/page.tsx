@@ -1,11 +1,11 @@
 "use client"
 import Image from "next/image";
 import Link from 'next/link';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { auth, db } from "../app/Firebase/config";
 import { setDocument, viewDocument } from "../utils/firebaseHelper.js"
+import { db } from "../utils/firebaseConfig"; 
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 
@@ -14,7 +14,7 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  //const auth = getAuth();
+  const auth = getAuth();
 
   const changeEmailInput = (e) => {
     setEmail(e.target.value);
@@ -26,13 +26,12 @@ export default function Home() {
 
   const handleLogin = async () => {
     console.log("trying login with EMAIL:" + email + " | PASSWORD:" + password + "\n");
-    setError();
+    setError("");
 
     if (!email) {
       setError("Email cannot be blank.");
       return;
     }
-
     if (!password) {
       setError("Password cannot be blank.");
       return;
@@ -47,21 +46,22 @@ export default function Home() {
       setError("Account with this email not found.");
       return;
     }
-    
-    const userData = await viewDocument("Users", querySnapshot.docs[0].id);
 
-    if (userData == null) {
-      setError("Incorrect password.");
-      return;
-    } else if (userData.email == email && userData.password == password) {
-      console.log("Login successful:", userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-
-      window.location.href = "/Calendar"; // Redirect on success
-    } else {
-      setError("Invalid email or password.");
-      console.log("Login failed: Incorrect credentials.");
-    }
+    // Sign in
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in 
+        const user = userCredential.user;
+        console.log("Successfully logged in!");
+        console.log("User ID (UID):", user.uid);
+        console.log("User Email:", user.email);
+        window.location.href = "/calendar"; // Redirect on success
+      })
+      .catch((err) => {
+        console.log(err.code);
+        console.log(err.message);
+        setError("Invalid email or password.");
+      });
 }
 
   return (
@@ -85,7 +85,7 @@ export default function Home() {
           <li className="text-black mb-2 flex justify-between items-center gap-2" >
             <span>Password:</span>
             <input
-            type="text"
+            type="password"
             style={{ backgroundColor: "rgb(180, 180, 180)" , borderColor: "rgb(100, 100, 100)"}}
             className="border rounded px-2 py-1 text-black placeholder-[rgb(70,70,70)]"
             placeholder="Enter password"
