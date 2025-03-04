@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDocs, query, where } from "firebase/firestore";
+import { getDocs, query, where, setDoc, doc} from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../../utils/firebaseConfig"; 
+import { auth, db } from "../../utils/firebaseConfig"; 
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+
+
 import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Register() {
@@ -23,10 +26,8 @@ export default function Register() {
    * creates new user with docID as email. Profile picture is saved with Marco's API calls
    */
 
-  const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleRegister = async () => {
     if (!email.trim()) {
-      return alert("Email cannot be blank.");
       alert("Email cannot be blank.");
       return;
     }
@@ -52,11 +53,15 @@ export default function Register() {
         return;
       }
 
+      /* firebase authentication */
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
       /* email, username, password send to database. userID is docRef */
-      const docRef = await addDoc(collection(db, "Users"), {
+      const docRef = await setDoc(doc(db, "Users", user.uid), {
         email: email,
         username: username,
-        password: password,
+        password: password, //password shouldnot be sent
       });    
 
       /* profile picture save with Marco API */
