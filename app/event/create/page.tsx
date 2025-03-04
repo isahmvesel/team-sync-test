@@ -25,6 +25,7 @@ import {
   doc,
   updateDoc,
   arrayUnion,
+  getDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { firebaseApp } from "@/utils/firebaseConfig";
@@ -106,6 +107,18 @@ export default function CreateEvent() {
 
       if (uid) {
         const userDocRef = doc(db, "Users", uid);
+
+        // check if events array exists
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (!("events" in data)) {
+            await updateDoc(userDocRef, {
+              events: []
+            })
+          }
+        }
+        
         await updateDoc(userDocRef, {
           events: arrayUnion(`/Event/${docref.id}`),
         });
