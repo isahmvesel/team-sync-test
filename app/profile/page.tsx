@@ -9,7 +9,7 @@ import { viewDocument } from "../../utils/firebaseHelper.js";
 export default function Profile() {
   const router = useRouter();
   const [userId, setUserId] = useState("testuser");
-  const [userData, setUserData] = useState({ email: "", name: "" });
+  const [userData, setUserData] = useState({ email: "", username: "" });
   const [preview, setPreview] = useState("/default-profile.jpg");
 
   useEffect(() => {
@@ -27,7 +27,10 @@ export default function Profile() {
     const fetchUserData = async () => {
       const userDoc = await viewDocument("Users", userId);
       if (userDoc) {
-        setUserData(userDoc);
+        setUserData({
+          email: userDoc.email || "",
+          username: userDoc.username || "",
+        });
       }
     };
 
@@ -39,7 +42,7 @@ export default function Profile() {
           setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
         }
       } catch {
-        setPreview("/default-profile.jpg");
+        setPreview("/uploads/testuser.png");
       }
     };
 
@@ -75,7 +78,7 @@ export default function Profile() {
       />
       <h2>User ID: {userId}</h2>
       <p><strong>Email:</strong> {userData.email}</p>
-      <p><strong>Username:</strong> {userData.name}</p>
+      <p><strong>Username:</strong> {userData.username}</p>
       <button
         onClick={() => router.push("/settings")}
         style={{

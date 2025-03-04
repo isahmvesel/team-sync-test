@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../utils/firebaseConfig.js";
 import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Settings() {
   const router = useRouter();
   const [userId, setUserId] = useState("testuser");
-  const [formData, setFormData] = useState({ email: "", name: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", username: ""});
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [image, setImage] = useState<File | null>(null);
@@ -16,7 +17,6 @@ export default function Settings() {
   const [preview, setPreview] = useState("/default-profile.jpg");
 
   useEffect(() => {
-    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserId(user.uid);
@@ -34,8 +34,7 @@ export default function Settings() {
         if (data) {
           setFormData({
             email: data.email || "",
-            name: data.name || "",
-            password: data.password || "",
+            username: data.username || ""
           });
         }
         setLoading(false);
@@ -50,7 +49,7 @@ export default function Settings() {
           setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
         }
       } catch {
-        setPreview("/default-profile.jpg");
+        setPreview("/uploads/testuser.png");
       }
     };
 
@@ -187,23 +186,7 @@ export default function Settings() {
           <input
             type="text"
             name="name"
-            value={formData.name}
-            onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ccc",
-            }}
-            required
-          />
-        </div>
-        <div style={{ marginBottom: "15px", textAlign: "left" }}>
-          <label style={{ fontWeight: "bold", display: "block" }}>Password:</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
+            value={formData.username}
             onChange={handleChange}
             style={{
               width: "100%",
