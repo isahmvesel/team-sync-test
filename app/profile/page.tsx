@@ -8,7 +8,7 @@ import { viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Profile() {
   const router = useRouter();
-  const [userId, setUserId] = useState("testuser");
+  const [userId, setUserId] = useState("");
   const [userData, setUserData] = useState({ email: "", username: "" });
   const [preview, setPreview] = useState("/default-profile.jpg");
 
