@@ -32,6 +32,27 @@ export default function ModifyWorkout() {
     fetchWorkout();
   }, [workoutId]);
 
+  // Fetch log if user is already mapped
+  useEffect(() => {
+    const fetchUserLog = async () => {
+      if (workout && userId) {
+        const userLogRef = workout.Map?.[userId];
+        if (userLogRef) {
+          const logDocRef = doc(db, "Logs", userLogRef);
+          const logDocSnap = await getDoc(logDocRef);
+          if (logDocSnap.exists()) {
+            setPersonalLogs(logDocSnap.data().descriptions || []);
+          }
+        }
+      }
+    };
+
+    if (workout) {
+      fetchUserLog();
+    }
+  }, [workout, userId]);
+
+
   // Handle personal description change
   const handlePersonalDescriptionChange = (index: number, value: string) => {
     const updatedLogs = [...personalLogs];
@@ -70,6 +91,19 @@ export default function ModifyWorkout() {
         Map: map,
       });
 
+      const userRef = doc(db, "Users", userId);
+      const userSnap = await getDoc(userRef);
+      let workouts = userSnap.exists() ? userSnap.data().workouts || [] : [];
+      
+      // Add the workoutId if it isn't already in the array
+      if (!workouts.includes(workoutId)) {
+        workouts.push(workoutId);
+      }
+
+      // Update the user document with the new workouts array
+      await updateDoc(userRef, {
+        workouts: workouts,
+      });
       alert("Logs saved successfully!");
 
       const eventId = workout.eventId;
