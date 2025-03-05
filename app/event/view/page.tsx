@@ -28,6 +28,7 @@ export default function ViewEvent() {
 
   const [data, setData] = useState<DocumentData | null>(null);
   const docId = useSearchParams().get("docId");
+  const [loading, setLoading] = useState(true);
 
   // workout related data
   const [workoutData, setWorkoutData] = useState<string[]>([]);
@@ -72,6 +73,8 @@ export default function ViewEvent() {
         setData(currData);
         setWorkoutData(currData.workouts);
         setWorkoutCount(currData.workouts.length);
+
+        setLoading(false);
       } else {
         console.log("data can't be found.");
       }
@@ -94,6 +97,13 @@ export default function ViewEvent() {
   const handleBack = () => {
     router.push("/calendar");
   };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+  if (!data) {
+    return <p>Error: event not found.</p>;
+  }
 
   return (
     <div className="flex items-center justify-center">
