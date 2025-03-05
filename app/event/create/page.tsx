@@ -106,6 +106,7 @@ export default function CreateEvent() {
         RSVP_yes: [],
         RSVP_maybe: [],
         RSVP_no: [],
+        workouts: [],
       });
 
       if (uid) {
