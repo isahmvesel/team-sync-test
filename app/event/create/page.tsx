@@ -103,6 +103,9 @@ export default function CreateEvent() {
           : Timestamp.fromDate(new Date(endDate)),
         location,
         owner: uid,
+        RSVP_yes: [],
+        RSVP_maybe: [],
+        RSVP_no: [],
       });
 
       if (uid) {
@@ -114,11 +117,11 @@ export default function CreateEvent() {
           const data = docSnap.data();
           if (!("events" in data)) {
             await updateDoc(userDocRef, {
-              events: []
-            })
+              events: [],
+            });
           }
         }
-        
+
         await updateDoc(userDocRef, {
           events: arrayUnion(`/Event/${docref.id}`),
         });
@@ -209,14 +212,14 @@ export default function CreateEvent() {
         <CardFooter>
           <Button
             onClick={cancelButton}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all mx-3 my-0"
           >
             Cancel
           </Button>
           <Button
             onClick={eventCreation}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all mx-3 my-0"
           >
             Create Event
           </Button>

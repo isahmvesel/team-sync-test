@@ -1,25 +1,39 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useState, useEffect } from "react";
 import { db } from "@/utils/firebaseConfig";
-import { doc, getDoc, DocumentData } from "firebase/firestore";
+import { doc, getDoc, DocumentData, onSnapshot } from "firebase/firestore";
 
 function RSVPView({ eventId }) {
   const [yesList, setYesList] = useState([]);
   const [maybeList, setMaybeList] = useState([]);
   const [noList, setNoList] = useState([]);
+
+  useEffect(() => {
+
+    if (!eventId) {
+      return;
+    }
+
+    const docRef = doc(db, "Event", eventId);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+
+        setYesList(data?.RSVP_yes);
+        setMaybeList(data?.RSVP_maybe);
+        setNoList(data?.RSVP_no);
+      } else {
+        console.log("error getting rsvp statuses");
+      }
+    });
+
+    return () => unsubscribe();
+  }, ["Event", eventId])
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -56,7 +70,7 @@ function RSVPView({ eventId }) {
         <ScrollArea className="h-28 w-full rounded-md border shadow-md mt-2 px-2 py-1">
           <div className="grid">
             {yesList.map((item, index) => (
-              <Label className="text-md px-2">{item}</Label>
+              <Label key={index} className="text-md px-2">{item}</Label>
             ))}
           </div>
         </ScrollArea>
@@ -66,7 +80,7 @@ function RSVPView({ eventId }) {
         <ScrollArea className="h-28 w-full rounded-md border shadow-md mt-2 px-2 py-1">
           <div className="grid">
             {maybeList.map((item, index) => (
-              <Label className="text-md px-2">{item}</Label>
+              <Label key={index} className="text-md px-2">{item}</Label>
             ))}
           </div>
         </ScrollArea>
@@ -76,7 +90,7 @@ function RSVPView({ eventId }) {
         <ScrollArea className="h-28 w-full rounded-md border shadow-md mt-2 px-2 py-1">
           <div className="grid">
             {noList.map((item, index) => (
-              <Label className="text-md px-2">{item}</Label>
+              <Label key={index} className="text-md px-2">{item}</Label>
             ))}
           </div>
         </ScrollArea>
