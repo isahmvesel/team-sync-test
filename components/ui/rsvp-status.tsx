@@ -21,29 +21,31 @@ function RSVPStatus({ eventId }) {
 
   const [status, setStatus] = useState("");
 
-  const fetchInitialStatus = async () => {
-    try {
-      const docRef = doc(db, "Event", eventId);
-      const docSnap = await getDoc(docRef);
-      const data = docSnap.data();
+  useEffect(() => {
+    const fetchInitialStatus = async () => {
+      try {
+        const docRef = doc(db, "Event", eventId);
+        const docSnap = await getDoc(docRef);
+        const data = docSnap.data();
 
-      if (data?.RSVP_yes.includes(username)) {
-        setStatus("yes");
-      } else if (data?.RSVP_no.includes(username)) {
-        setStatus("no");
-      } else {
-        setStatus("maybe");
-        if (!data?.RSVP_maybe.includes(username)) {
-          await updateDoc(docRef, {
-            RSVP_maybe: arrayUnion(username),
-          });
+        if (data?.RSVP_yes.includes(username)) {
+          setStatus("yes");
+        } else if (data?.RSVP_no.includes(username)) {
+          setStatus("no");
+        } else {
+          setStatus("maybe");
+          if (!data?.RSVP_maybe.includes(username)) {
+            await updateDoc(docRef, {
+              RSVP_maybe: arrayUnion(username),
+            });
+          }
         }
+      } catch (e) {
+        console.error("error retrieving user's inital RSVP status");
       }
-    } catch (e) {
-      console.error("error retrieving user's inital RSVP status");
-    }
-  };
-  fetchInitialStatus();
+    };
+    fetchInitialStatus();
+  });
 
   const fetchUsername = async () => {
     try {
