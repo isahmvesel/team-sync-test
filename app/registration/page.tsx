@@ -54,7 +54,7 @@ export default function Register() {
     try {
 
       /* Check if email already exists in the Firestore database */
-      const userQuery = query(collection(db, "User"), where("email", "==", email));
+      const userQuery = query(collection(db, "Users"), where("email", "==", email));
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
         alert("Email is already registered. Please use a different email.");
