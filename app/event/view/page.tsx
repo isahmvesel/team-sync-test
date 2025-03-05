@@ -12,13 +12,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import RSVPView from "@/components/ui/rsvp-card";
+import RSVPStatus from "@/components/ui/rsvp-status";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { db } from "../../../utils/firebaseConfig";
+import { db, firebaseApp } from "../../../utils/firebaseConfig";
 import { doc, getDoc, DocumentData } from "firebase/firestore";
+import { getAuth } from "@firebase/auth";
 
 export default function ViewEvent() {
+  const auth = getAuth(firebaseApp);
+  const uid = auth.currentUser?.uid;
+
   const [data, setData] = useState<DocumentData | null>(null);
   const docId = useSearchParams().get("docId");
 
@@ -111,6 +117,16 @@ export default function ViewEvent() {
             <Label className="text-sm font-medium">
               Location: {data?.location || "N/A"}
             </Label>
+          </div>
+
+          <div className="mb-1 mt-3">
+            <Label>Your RSVP Status:</Label>
+            <RSVPStatus eventId={docId} userId={uid}></RSVPStatus>
+          </div>
+
+          <div className="mb-1 mt-1">
+            <Label>View RSVP Statuses:</Label>
+            <RSVPView eventId={docId}></RSVPView>
           </div>
         </CardContent>
 
