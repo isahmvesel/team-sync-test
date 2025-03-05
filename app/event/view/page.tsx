@@ -20,6 +20,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { db, firebaseApp } from "../../../utils/firebaseConfig";
 import { doc, getDoc, DocumentData } from "firebase/firestore";
 import { getAuth } from "@firebase/auth";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function ViewEvent() {
   const auth = getAuth(firebaseApp);
@@ -28,6 +29,35 @@ export default function ViewEvent() {
   const [data, setData] = useState<DocumentData | null>(null);
   const docId = useSearchParams().get("docId");
 
+  // workout related data
+  const [workoutData, setWorkoutData] = useState<string[]>([]);
+  const [workoutCount, setWorkoutCount] = useState<number>(0);
+  const [workoutNameList, setWorkoutNameList] = useState<string[]>([]);
+  const [workoutDict, setWorkoutDict] = useState<{ [key: string]: string }>({});
+
+  // use effect for fetching workout data
+  useEffect(() => {
+    const parseWorkoutData = async () => {
+      var nameList = [];
+      var dict: { [key: string]: string } = {};
+      for (var id in workoutData) {
+        const workoutId = workoutData[id];
+        const workoutDoc = doc(db, "Workouts", workoutId);
+        const workoutSnap = await getDoc(workoutDoc);
+
+        const workoutName = workoutSnap.data()?.name || "name not found";
+        nameList.push(workoutName);
+        dict[workoutName] = workoutId;
+      }
+
+      setWorkoutNameList(nameList);
+      setWorkoutDict(dict);
+    };
+
+    parseWorkoutData();
+  }, [workoutCount]);
+
+  // use effect for fetching data
   useEffect(() => {
     const fetchDocument = async () => {
       if (!docId) {
@@ -38,7 +68,10 @@ export default function ViewEvent() {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        setData(docSnap.data());
+        const currData = docSnap.data();
+        setData(currData);
+        setWorkoutData(currData.workouts);
+        setWorkoutCount(currData.workouts.length);
       } else {
         console.log("data can't be found.");
       }
@@ -48,6 +81,12 @@ export default function ViewEvent() {
   }, []);
 
   const router = useRouter();
+
+  const toWorkout = (workoutName: string) => {
+    const workoutId = workoutDict[workoutName];
+    router.push(`/workout/modify?workoutId=${workoutId}&userId=${uid}`);
+  };
+
   const modifyNavigation = () => {
     router.push(`/event/modify?docId=${docId}`);
   };
@@ -121,13 +160,30 @@ export default function ViewEvent() {
 
           <div className="mb-1 mt-3">
             <Label>Your RSVP Status:</Label>
-            <RSVPStatus eventId={docId} userId={uid}></RSVPStatus>
+            <RSVPStatus eventId={docId}></RSVPStatus>
           </div>
 
           <div className="mb-1 mt-1">
             <Label>View RSVP Statuses:</Label>
             <RSVPView eventId={docId}></RSVPView>
           </div>
+
+          {workoutCount != 0 && (
+            <div>
+              <Label>Workouts:</Label>
+              <ScrollArea className="h-28 w-full rounded-md border shadow-md mt-2 px-2 pt-1">
+                {workoutNameList.map((item, index) => (
+                  <Button
+                    className="m-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+                    key={index}
+                    onClick={() => toWorkout(item)}
+                  >
+                    {item}
+                  </Button>
+                ))}
+              </ScrollArea>
+            </div>
+          )}
         </CardContent>
 
         <CardFooter>

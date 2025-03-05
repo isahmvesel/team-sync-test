@@ -19,21 +19,6 @@ function RSVPStatus({ eventId }) {
   const uid = auth.currentUser?.uid;
   const [username, setUsername] = useState("");
 
-  const fetchUsername = async () => {
-    try {
-      const docRef = doc(db, "Users", uid || "uid");
-      const docSnap = await getDoc(docRef);
-      const user = docSnap.data()?.name;
-
-      if (user) {
-        setUsername(user);
-      }
-    } catch (e) {
-      console.error("error fetching user's name", e);
-    }
-  };
-  fetchUsername();
-
   const [status, setStatus] = useState("");
 
   const fetchInitialStatus = async () => {
@@ -59,6 +44,21 @@ function RSVPStatus({ eventId }) {
     }
   };
   fetchInitialStatus();
+
+  const fetchUsername = async () => {
+    try {
+      const docRef = doc(db, "Users", uid || "uid");
+      const docSnap = await getDoc(docRef);
+      const user = docSnap.data()?.name;
+
+      if (user) {
+        setUsername(user);
+      }
+    } catch (e) {
+      console.error("error fetching user's name", e);
+    }
+  };
+  fetchUsername();
 
   const handleStatusChange = async (newTab) => {
     try {
