@@ -6,6 +6,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../utils/firebaseConfig.js";
 import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 import { Switch } from "@/components/ui/switch";
+import { doc, setDoc, getDoc } from "@firebase/firestore";
+import { db } from "@/utils/firebaseConfig.js";
 
 export default function Settings() {
   const router = useRouter();
@@ -17,7 +19,7 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState("/default-profile.jpg");
 
-  const [themeType, setThemeType] = useState(true);
+  const [isLightMode, setIsLightMode] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -115,6 +117,25 @@ export default function Settings() {
     }
   };
 
+  const toggleTheme = async () => {
+    setIsLightMode(!isLightMode)
+    console.log("toggled theme");
+    const user = auth.currentUser;
+
+    //const data = await viewDocument("Users", userId);
+    //const doc = viewDocument("Users", userId);
+    if (user) {
+      const userDocRef = doc(db, "Users", user.uid);
+      console.log("2");
+      await setDoc(userDocRef, { themeType: isLightMode }, { merge: true });
+      /*await setDocument("Users", userId, {
+          themeType: isLightMode
+        }
+      );*/
+      console.log("Theme updated!");
+    }
+  }
+
   return (
     <div
       style={{
@@ -206,12 +227,13 @@ export default function Settings() {
           <div className="flex items-left space-x-6 mb-4">
             <label style={{ fontWeight: "bold", display: "block" }}>Theme:</label>
             <Switch 
-              checked={themeType}
-              onCheckedChange={() => setThemeType(!themeType)}
+              checked={isLightMode}
+              onCheckedChange={toggleTheme}
             />
-            <span className="text-m">{themeType ? "Dark Mode" : "Light Mode"}</span>
+            <span className="text-m">{isLightMode ? "Dark Mode" : "Light Mode"}</span>
           </div>
         </div>
+
         <button
           type="submit"
           disabled={updating}
