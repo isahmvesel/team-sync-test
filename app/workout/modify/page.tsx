@@ -1,3 +1,5 @@
+export default function ModifyWorkout() {
+    return <p>modify workout page</p>;
 "use client";
 
 import { useState, useEffect } from "react";

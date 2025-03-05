@@ -19,6 +19,34 @@ function RSVPStatus({ eventId }) {
   const uid = auth.currentUser?.uid;
   const [username, setUsername] = useState("");
 
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    const fetchInitialStatus = async () => {
+      try {
+        const docRef = doc(db, "Event", eventId);
+        const docSnap = await getDoc(docRef);
+        const data = docSnap.data();
+
+        if (data?.RSVP_yes.includes(username)) {
+          setStatus("yes");
+        } else if (data?.RSVP_no.includes(username)) {
+          setStatus("no");
+        } else {
+          setStatus("maybe");
+          if (!data?.RSVP_maybe.includes(username)) {
+            await updateDoc(docRef, {
+              RSVP_maybe: arrayUnion(username),
+            });
+          }
+        }
+      } catch (e) {
+        console.error("error retrieving user's inital RSVP status");
+      }
+    };
+    fetchInitialStatus();
+  });
+
   const fetchUsername = async () => {
     try {
       const docRef = doc(db, "Users", uid || "uid");
@@ -33,32 +61,6 @@ function RSVPStatus({ eventId }) {
     }
   };
   fetchUsername();
-
-  const [status, setStatus] = useState("");
-
-  const fetchInitialStatus = async () => {
-    try {
-      const docRef = doc(db, "Event", eventId);
-      const docSnap = await getDoc(docRef);
-      const data = docSnap.data();
-
-      if (data?.RSVP_yes.includes(username)) {
-        setStatus("yes");
-      } else if (data?.RSVP_no.includes(username)) {
-        setStatus("no");
-      } else {
-        setStatus("maybe");
-        if (!data?.RSVP_maybe.includes(username)) {
-          await updateDoc(docRef, {
-            RSVP_maybe: arrayUnion(username),
-          });
-        }
-      }
-    } catch (e) {
-      console.error("error retrieving user's inital RSVP status");
-    }
-  };
-  fetchInitialStatus();
 
   const handleStatusChange = async (newTab) => {
     try {
