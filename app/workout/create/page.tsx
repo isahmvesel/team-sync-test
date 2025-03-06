@@ -33,13 +33,12 @@ export default function Workout() {
             alert("Workout saved successfully!");
 
             const eventRef = doc(db, "Event", docId);
-            console.log("Event doc reference:", eventRef.path); // Logs the full Firestore path
-
 
             // Step 3: Update event's workouts array by adding the new workout ID
             await updateDoc(eventRef, {
                 workouts: arrayUnion(workoutRef.id),
             });
+            router.push(`/event/view?docId=${docId}`);
 
         } catch (error) {
             alert("There was an error saving the workout.");

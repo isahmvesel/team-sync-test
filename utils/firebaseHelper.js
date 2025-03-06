@@ -1,6 +1,6 @@
 import { db } from "./firebaseConfig.js";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 const auth = getAuth();
 
@@ -39,4 +39,22 @@ async function viewDocument(collectionName, docId) {
     }
 }
 
-export { setDocument, viewDocument };
+async function login(email, password) {
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        console.log("User logged in successfully!");
+    } catch (error) {
+        console.error("Error logging in: ", error);
+    }
+}
+
+async function logout() {
+    try {
+        await signOut(auth);
+        console.log("User logged out successfully!");
+    } catch (error) {
+        console.error("Error logging out: ", error);
+    }
+}
+
+export { setDocument, viewDocument, login, logout };
