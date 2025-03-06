@@ -72,7 +72,7 @@ export default function ViewEvent() {
         const currData = docSnap.data();
         setData(currData);
         setWorkoutData(currData.workouts);
-        setWorkoutCount(currData.workouts.length);
+        setWorkoutCount(currData.workouts?.length || 0);
 
         setLoading(false);
       } else {
@@ -193,6 +193,10 @@ export default function ViewEvent() {
                 ))}
               </ScrollArea>
             </div>
+          )}
+
+          {workoutCount == 0 && (
+            <Label>There are no workouts for this event.</Label>
           )}
         </CardContent>
 
