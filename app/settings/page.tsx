@@ -120,14 +120,14 @@ export default function Settings() {
     }
   };
 
-  const toggleTheme = async () => {
+  const toggleTheme = () => {
     setIsLightMode(!isLightMode)
     //console.log("toggled theme");
     const user = auth.currentUser;
 
     if (user) {
       const userDocRef = doc(db, "Users", user.uid);
-      await setDoc(userDocRef, { isLightTheme: isLightMode }, { merge: true });
+      setDoc(userDocRef, { isLightTheme: isLightMode }, { merge: true });
       if (isLightMode) {
         localStorage.setItem("theme", "light");
         document.body.classList.remove("dark-mode");
