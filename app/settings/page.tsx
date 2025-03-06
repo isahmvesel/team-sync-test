@@ -18,7 +18,7 @@ export default function Settings() {
   const [updating, setUpdating] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState("/default-profile.jpg");
+  const [preview, setPreview] = useState("/default.png");
 
   const [isLightMode, setIsLightMode] = useState(false);
 
@@ -27,7 +27,7 @@ export default function Settings() {
       if (user) {
         setUserId(user.uid);
       } else {
-        router.push("/registration");
+        router.push("/");
         setUserId("testuser");
       }
     });
@@ -140,7 +140,7 @@ export default function Settings() {
   const handleLogout = async () => {
     try {
       logout()
-      router.push("/registration");
+      router.push("/");
     } catch (error) {
       alert("Error logging out.");
     }
@@ -220,8 +220,8 @@ export default function Settings() {
         <div style={{ marginBottom: "15px", textAlign: "left" }}>
           <label style={{ fontWeight: "bold", display: "block" }}>Username:</label>
           <input
-            type="text"
-            name="name"
+            type="username"
+            name="username"
             value={formData.username}
             onChange={handleChange}
             style={{
@@ -229,12 +229,12 @@ export default function Settings() {
               padding: "10px",
               borderRadius: "5px",
               border: "1px solid #ccc",
+              color: "black"
             }}
             required
           />
         </div>
 
-        {/* Light/dark toggle switch */}
         <div className="flex flex-col">
           <div className="flex items-left space-x-6 mb-4">
             <label style={{ fontWeight: "bold", display: "block" }}>Theme:</label>
@@ -246,17 +246,6 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Light/dark toggle switch */}
-        <div className="flex flex-col">
-          <div className="flex items-left space-x-6 mb-4">
-            <label style={{ fontWeight: "bold", display: "block" }}>Theme:</label>
-            <Switch 
-              checked={themeType}
-              onCheckedChange={() => setThemeType(!themeType)}
-            />
-            <span className="text-m">{themeType ? "Dark Mode" : "Light Mode"}</span>
-          </div>
-        </div>
         <button
           type="submit"
           disabled={updating}
@@ -289,7 +278,6 @@ export default function Settings() {
       >
         Back to Profile
       </button>
-      <NavBar />
 
       <button
         onClick={handleLogout}
@@ -306,6 +294,8 @@ export default function Settings() {
       >
         Logout
       </button>
+      <NavBar />
+
     </div>
   );
 }

@@ -41,7 +41,7 @@ function RSVPStatus({ eventId }) {
           }
         }
       } catch (e) {
-        console.error("error retrieving user's inital RSVP status");
+        console.log("error retrieving user's inital RSVP status");
       }
     };
     fetchInitialStatus();
@@ -87,12 +87,18 @@ function RSVPStatus({ eventId }) {
     <Tabs
       value={status}
       onValueChange={handleStatusChange}
-      className="p-3 pt-2"
+      className="p-0 my-1"
     >
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="yes">Yes</TabsTrigger>
-        <TabsTrigger value="maybe">Maybe</TabsTrigger>
-        <TabsTrigger value="no">No</TabsTrigger>
+      <TabsList className="p-0 m-0 grid w-full grid-cols-3">
+        <TabsTrigger className="m-1 p-1" value="yes">
+          Yes
+        </TabsTrigger>
+        <TabsTrigger className="m-1 p-1" value="maybe">
+          Maybe
+        </TabsTrigger>
+        <TabsTrigger className="m-1 p-1" value="no">
+          No
+        </TabsTrigger>
       </TabsList>
     </Tabs>
   );

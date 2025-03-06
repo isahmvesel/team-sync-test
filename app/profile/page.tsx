@@ -10,14 +10,14 @@ export default function Profile() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [userData, setUserData] = useState({ email: "", username: "" });
-  const [preview, setPreview] = useState("/default-profile.jpg");
+  const [preview, setPreview] = useState("/default.png");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserId(user.uid);
       } else {
-        router.push("/registration");
+        router.push("/");
         setUserId("testuser");
       }
     });
@@ -69,17 +69,17 @@ export default function Profile() {
       <img
         src={preview}
         alt="Profile"
-        width="200"
+        width="150"
         style={{
           display: "block",
           margin: "0 auto",
           borderRadius: "50%",
           objectFit: "cover",
-          border: "2px solid #ccc",
+          border: "3px solid #0070f3",
         }}
-        onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
+        onError={(e) => (e.currentTarget.src = "/default.png")}
       />
-      <h2>User ID: {userId}</h2>
+      {/*<h2>User ID: {userId}</h2>*/}
       <p><strong>Email:</strong> {userData.email}</p>
       <p><strong>Username:</strong> {userData.username}</p>
       <button

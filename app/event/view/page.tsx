@@ -72,7 +72,7 @@ export default function ViewEvent() {
         const currData = docSnap.data();
         setData(currData);
         setWorkoutData(currData.workouts);
-        setWorkoutCount(currData.workouts.length);
+        setWorkoutCount(currData.workouts?.length || 0);
 
         setLoading(false);
       } else {
@@ -168,12 +168,12 @@ export default function ViewEvent() {
             </Label>
           </div>
 
-          <div className="mb-1 mt-3">
+          <div className="mt-4 mb-2">
             <Label>Your RSVP Status:</Label>
             <RSVPStatus eventId={docId}></RSVPStatus>
           </div>
 
-          <div className="mb-1 mt-1">
+          <div className="mt-2 mb-4">
             <Label>View RSVP Statuses:</Label>
             <RSVPView eventId={docId}></RSVPView>
           </div>
@@ -194,18 +194,22 @@ export default function ViewEvent() {
               </ScrollArea>
             </div>
           )}
+
+          {workoutCount == 0 && (
+            <Label>There are no workouts for this event.</Label>
+          )}
         </CardContent>
 
         <CardFooter>
           <Button
             onClick={handleBack}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+            className="my-2 mx-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded transition-all"
           >
             Back
           </Button>
           <Button
             onClick={modifyNavigation}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+            className="my-2 mx-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded transition-all"
           >
             Modify
           </Button>
