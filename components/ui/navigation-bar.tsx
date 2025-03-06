@@ -17,7 +17,7 @@ const NavBar = () => {
     }, []);
 
     return (
-        <div className={`navbar fixed bottom-0 left-0 w-full items-center shadow-md flex justify-around h-[10vh] border-t z-10 p-0`}>
+        <div className={`navbar fixed bottom-0 left-0 w-full items-center shadow-md flex justify-around h-[10vh] border-t z-10 p-0 min-h-[20]`}>
             <NavBarItem href="/calendar" icon="/nav_bar_icons/Search.png" active={false} />
             <NavBarItem href="/calendar" icon="/nav_bar_icons/Groups.png" active={false} />
             <NavBarItem href="/calendar" icon="/nav_bar_icons/Calendar.png" active={false} />
@@ -30,14 +30,13 @@ const NavBar = () => {
 const NavBarItem = ({ href, icon, active }: { href: string; icon: string; active: boolean }) => {
     const isDarkMode = localStorage.getItem("theme") === "dark";
 
-    // Dynamically change the icon based on the theme
     const iconSrc = isDarkMode ? icon.replace(".png", "-White.png") : icon;
 
     return (
         <Link href={href}>
-            <Button variant={active ? "default" : "ghost"} className="justify-center flex flex-col items-center w-[4vw] h-[4vw] relative">
+            <Button variant={active ? "default" : "ghost"} className="justify-center flex flex-col items-center w-[6vw] h-[6vh] max-w-[400] max-h-[400] relative">
                 {/* Use iconSrc */}
-                <Image src={iconSrc} alt="Icon" fill className="flex object-contain" />
+                <Image src={iconSrc} alt="Icon" objectFit="contain" fill className="flex object-contain" />
             </Button>
         </Link>
     );
