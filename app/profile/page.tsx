@@ -17,6 +17,7 @@ export default function Profile() {
       if (user) {
         setUserId(user.uid);
       } else {
+        router.push("/registration");
         setUserId("testuser");
       }
     });
