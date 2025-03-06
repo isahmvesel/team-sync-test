@@ -8,7 +8,7 @@ import { viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Profile() {
   const router = useRouter();
-  const [userId, setUserId] = useState("testuser");
+  const [userId, setUserId] = useState("");
   const [userData, setUserData] = useState({ email: "", username: "" });
   const [preview, setPreview] = useState("/default-profile.jpg");
 
@@ -17,6 +17,7 @@ export default function Profile() {
       if (user) {
         setUserId(user.uid);
       } else {
+        router.push("/registration");
         setUserId("testuser");
       }
     });
@@ -70,6 +71,8 @@ export default function Profile() {
         alt="Profile"
         width="200"
         style={{
+          display: "block",
+          margin: "0 auto",
           borderRadius: "50%",
           objectFit: "cover",
           border: "2px solid #ccc",

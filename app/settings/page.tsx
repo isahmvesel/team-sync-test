@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../utils/firebaseConfig.js";
-import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 import { Switch } from "@/components/ui/switch";
 import { doc, setDoc, getDoc } from "@firebase/firestore";
 import { db } from "@/utils/firebaseConfig.js";
 import NavBar from "@/components/ui/navigation-bar";
+import { setDocument, viewDocument, logout } from "../../utils/firebaseHelper.js";
 
 export default function Settings() {
   const router = useRouter();
-  const [userId, setUserId] = useState("testuser");
-  const [formData, setFormData] = useState({ email: "", username: ""});
+  const [userId, setUserId] = useState("");
+  const [formData, setFormData] = useState({ email: "", username: "" });
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [image, setImage] = useState<File | null>(null);
@@ -27,6 +27,7 @@ export default function Settings() {
       if (user) {
         setUserId(user.uid);
       } else {
+        router.push("/registration");
         setUserId("testuser");
       }
     });
@@ -136,6 +137,14 @@ export default function Settings() {
       console.log("Theme updated!" + localStorage.getItem("theme"));
     }
   }
+  const handleLogout = async () => {
+    try {
+      logout()
+      router.push("/registration");
+    } catch (error) {
+      alert("Error logging out.");
+    }
+  };
 
   return (
     <div 
@@ -151,13 +160,14 @@ export default function Settings() {
     >
       <h1 style={{ fontSize: "24px", marginBottom: "15px" }}>Settings</h1>
 
-      {/* Profile Picture Section */}
       <div style={{ marginBottom: "20px" }}>
         <img
           src={preview}
           alt="Profile"
           width="150"
           style={{
+            display: "block",
+            margin: "0 auto",
             borderRadius: "50%",
             objectFit: "cover",
             border: "3px solid #0070f3",
@@ -269,6 +279,22 @@ export default function Settings() {
         Back to Profile
       </button>
       <NavBar />
+
+      <button
+        onClick={handleLogout}
+        style={{
+          marginTop: "15px",
+          padding: "10px",
+          backgroundColor: "#e74c3c",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          width: "100%",
+        }}
+      >
+        Logout
+      </button>
     </div>
   );
 }
