@@ -133,6 +133,8 @@ export default function Settings() {
           alt="Profile"
           width="150"
           style={{
+            display: "block",
+            margin: "0 auto",
             borderRadius: "50%",
             objectFit: "cover",
             border: "3px solid #0070f3",

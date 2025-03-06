@@ -70,6 +70,8 @@ export default function Profile() {
         alt="Profile"
         width="200"
         style={{
+          display: "block",
+          margin: "0 auto",
           borderRadius: "50%",
           objectFit: "cover",
           border: "2px solid #ccc",
