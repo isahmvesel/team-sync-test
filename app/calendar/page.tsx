@@ -47,6 +47,15 @@ export default function Calendar() {
   const [eventList, setEventList] = useState<CalendarEvent[]>([]);
   const calendarRef = useRef<FullCalendar>(null);
 
+  const [, setIsDarkMode] = useState(() => {
+    const theme = localStorage.getItem("theme");
+    return theme === "dark";
+  });
+
+  useEffect(() => {
+    setIsDarkMode(localStorage.getItem("theme") === "dark");
+  }, []);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -97,9 +106,11 @@ export default function Calendar() {
   }, [auth]);
 
   return (
-    <>
+    <div className="calendar">
       <NavBar />
-      <div style={{ height: 'calc(80vh)' }}>
+      <div style={{ 
+        height: 'calc(80vh)',
+       }}>
         <FullCalendar
           ref={calendarRef}
           themeSystem='standard'
@@ -206,6 +217,6 @@ export default function Calendar() {
           font-weight: bold;
         }
       `}</style>
-    </>
+    </div>
   )
 }
