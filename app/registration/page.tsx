@@ -76,7 +76,7 @@ export default function Register() {
         const formData = new FormData();
         formData.append("image", profilePicture);
         try {
-          const res = await fetch(`/api/upload?userId=${email}`, {
+          const res = await fetch(`/api/upload?userId=${user.uid}`, {
             method: "POST",
             body: formData,
           });

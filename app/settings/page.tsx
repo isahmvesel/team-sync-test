@@ -2,25 +2,32 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../utils/firebaseConfig.js";
+import { Switch } from "@/components/ui/switch";
+import { doc, setDoc, getDoc } from "@firebase/firestore";
+import { db } from "@/utils/firebaseConfig.js";
+import NavBar from "@/components/ui/navigation-bar";
+import { setDocument, viewDocument, logout } from "../../utils/firebaseHelper.js";
 
 export default function Settings() {
   const router = useRouter();
-  const [userId, setUserId] = useState("testuser");
-  const [formData, setFormData] = useState({ email: "", name: "", password: "" });
+  const [userId, setUserId] = useState("");
+  const [formData, setFormData] = useState({ email: "", username: "" });
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState("/default-profile.jpg");
 
+  const [isLightMode, setIsLightMode] = useState(false);
+
   useEffect(() => {
-    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserId(user.uid);
       } else {
+        router.push("/registration");
         setUserId("testuser");
       }
     });
@@ -34,8 +41,7 @@ export default function Settings() {
         if (data) {
           setFormData({
             email: data.email || "",
-            name: data.name || "",
-            password: data.password || "",
+            username: data.username || ""
           });
         }
         setLoading(false);
@@ -50,7 +56,7 @@ export default function Settings() {
           setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
         }
       } catch {
-        setPreview("/default-profile.jpg");
+        setPreview("/uploads/testuser.png");
       }
     };
 
@@ -113,27 +119,55 @@ export default function Settings() {
     }
   };
 
+  const toggleTheme = async () => {
+    setIsLightMode(!isLightMode)
+    //console.log("toggled theme");
+    const user = auth.currentUser;
+
+    if (user) {
+      const userDocRef = doc(db, "Users", user.uid);
+      await setDoc(userDocRef, { isLightTheme: isLightMode }, { merge: true });
+      if (isLightMode) {
+        localStorage.setItem("theme", "light");
+        document.body.classList.remove("dark-mode");
+      } else {
+        localStorage.setItem("theme", "dark");
+        document.body.classList.add("dark-mode");
+      }
+      console.log("Theme updated!" + localStorage.getItem("theme"));
+    }
+  }
+  const handleLogout = async () => {
+    try {
+      logout()
+      router.push("/registration");
+    } catch (error) {
+      alert("Error logging out.");
+    }
+  };
+
   return (
-    <div
+    <div 
       style={{
         maxWidth: "500px",
         margin: "40px auto",
         padding: "25px",
         borderRadius: "10px",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        backgroundColor: "#fff",
+        //backgroundColor: "#fff",
         textAlign: "center",
       }}
     >
       <h1 style={{ fontSize: "24px", marginBottom: "15px" }}>Settings</h1>
 
-      {/* Profile Picture Section */}
       <div style={{ marginBottom: "20px" }}>
         <img
           src={preview}
           alt="Profile"
           width="150"
           style={{
+            display: "block",
+            margin: "0 auto",
             borderRadius: "50%",
             objectFit: "cover",
             border: "3px solid #0070f3",
@@ -178,6 +212,7 @@ export default function Settings() {
               padding: "10px",
               borderRadius: "5px",
               border: "1px solid #ccc",
+              color: "black"
             }}
             required
           />
@@ -187,7 +222,7 @@ export default function Settings() {
           <input
             type="text"
             name="name"
-            value={formData.name}
+            value={formData.username}
             onChange={handleChange}
             style={{
               width: "100%",
@@ -198,21 +233,17 @@ export default function Settings() {
             required
           />
         </div>
-        <div style={{ marginBottom: "15px", textAlign: "left" }}>
-          <label style={{ fontWeight: "bold", display: "block" }}>Password:</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ccc",
-            }}
-            required
-          />
+
+        {/* Light/dark toggle switch */}
+        <div className="flex flex-col">
+          <div className="flex items-left space-x-6 mb-4">
+            <label style={{ fontWeight: "bold", display: "block" }}>Theme:</label>
+            <Switch 
+              checked={isLightMode}
+              onCheckedChange={toggleTheme}
+            />
+            <span className="text-m">{isLightMode ? "Dark Mode" : "Light Mode"}</span>
+          </div>
         </div>
 
         <button
@@ -246,6 +277,23 @@ export default function Settings() {
         }}
       >
         Back to Profile
+      </button>
+      <NavBar />
+
+      <button
+        onClick={handleLogout}
+        style={{
+          marginTop: "15px",
+          padding: "10px",
+          backgroundColor: "#e74c3c",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          width: "100%",
+        }}
+      >
+        Logout
       </button>
     </div>
   );
