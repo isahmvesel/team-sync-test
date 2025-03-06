@@ -25,6 +25,8 @@ interface EventData {
   };
   description: string;
   location: string;
+  docID: string;
+  owner: string;
 }
 
 interface CalendarEvent {
@@ -34,6 +36,8 @@ interface CalendarEvent {
   allDay: boolean;
   description: string;
   location: string;
+  docID: string;
+  owner: string;
 }
 
 export default function Calendar() {
@@ -69,9 +73,11 @@ export default function Calendar() {
                   end: eventData.allDay || eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
                   description: eventData.description,
                   location: eventData.location,
+                  docID: eventDoc.id,
+                  owner: eventData.owner,
                 });
               }
-              console.log(newEventList);
+              console.log(newEventList[0].docID);
               setEventList(newEventList);
             }
           } else {
@@ -84,8 +90,12 @@ export default function Calendar() {
         console.error("User is not signed in.");
       }
     });
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      unsubscribe();
+      const allTooltips = document.querySelectorAll('.my-event-tooltip');
+      allTooltips.forEach((tooltipEl) => tooltipEl.remove());
+    };
+  }, [auth]);
 
   return (
     <>
@@ -98,6 +108,7 @@ export default function Calendar() {
           initialView="dayGridMonth"
           navLinks={true}
           selectable={true}
+          eventInteractive={true}
           height="100%"
           contentHeight="100%"
 
@@ -176,6 +187,17 @@ export default function Calendar() {
             const tooltipEl = info.event.extendedProps.tooltipEl;
             if (tooltipEl) {
               tooltipEl.remove();
+            }
+          }}
+          eventClick={(info) => {
+            if (auth.currentUser?.uid === info.event.extendedProps.owner) {
+              router.push(
+                `/event/modify?docId=${info.event.extendedProps.docID}`
+              );
+            } else {
+              router.push(
+                `/event/view?docId=${info.event.extendedProps.docID}`
+              );
             }
           }}
         />
