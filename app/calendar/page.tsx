@@ -47,20 +47,11 @@ export default function Calendar() {
   const [eventList, setEventList] = useState<CalendarEvent[]>([]);
   const calendarRef = useRef<FullCalendar>(null);
 
-  const [, setIsDarkMode] = useState(() => {
-    const theme = localStorage.getItem("theme");
-    return theme === "dark";
-  });
-
-  useEffect(() => {
-    setIsDarkMode(localStorage.getItem("theme") === "dark");
-  }, []);
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const uid = user.uid;
-
+        
         if (uid) {
           const userDocRef = doc(db, "Users", uid);
           const userDoc = await getDoc(userDocRef);
@@ -72,7 +63,17 @@ export default function Calendar() {
               // Get the events for the user
               for (let i = 0; i < userData.events.length; i++) {
                 const event = userData.events[i];
-                const eventDoc = await getDoc(event);
+                
+                let eventDoc;
+                try {
+                  eventDoc = await getDoc(event);
+                } catch (error) {
+                  console.error("Error getting document:", error);
+                }
+                if (!eventDoc || !eventDoc.exists()) {
+                  continue;
+                }
+
                 const eventData = eventDoc.data() as EventData;
 
                 newEventList.push({
