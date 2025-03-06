@@ -1,5 +1,4 @@
-export default function ModifyWorkout() {
-    return <p>modify workout page</p>;
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -106,10 +105,7 @@ export default function ModifyWorkout() {
       await updateDoc(userRef, {
         workouts: workouts,
       });
-      alert("Logs saved successfully!");
-
       const eventId = workout.eventId;
-      alert(`event id: ${eventId}`);
 
       // Route to the event view page with the event's docId
       router.push(`/event/view?docId=${eventId}`);
