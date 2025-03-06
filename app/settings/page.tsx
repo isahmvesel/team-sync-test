@@ -229,6 +229,7 @@ export default function Settings() {
               padding: "10px",
               borderRadius: "5px",
               border: "1px solid #ccc",
+              color: "black"
             }}
             required
           />
