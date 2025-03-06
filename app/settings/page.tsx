@@ -8,6 +8,7 @@ import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 import { Switch } from "@/components/ui/switch";
 import { doc, setDoc, getDoc } from "@firebase/firestore";
 import { db } from "@/utils/firebaseConfig.js";
+import NavBar from "@/components/ui/navigation-bar";
 
 export default function Settings() {
   const router = useRouter();
@@ -119,32 +120,32 @@ export default function Settings() {
 
   const toggleTheme = async () => {
     setIsLightMode(!isLightMode)
-    console.log("toggled theme");
+    //console.log("toggled theme");
     const user = auth.currentUser;
 
-    //const data = await viewDocument("Users", userId);
-    //const doc = viewDocument("Users", userId);
     if (user) {
       const userDocRef = doc(db, "Users", user.uid);
-      console.log("2");
-      await setDoc(userDocRef, { themeType: isLightMode }, { merge: true });
-      /*await setDocument("Users", userId, {
-          themeType: isLightMode
-        }
-      );*/
-      console.log("Theme updated!");
+      await setDoc(userDocRef, { isLightTheme: isLightMode }, { merge: true });
+      if (isLightMode) {
+        localStorage.setItem("theme", "light");
+        document.body.classList.remove("dark-mode");
+      } else {
+        localStorage.setItem("theme", "dark");
+        document.body.classList.add("dark-mode");
+      }
+      console.log("Theme updated!" + localStorage.getItem("theme"));
     }
   }
 
   return (
-    <div
+    <div 
       style={{
         maxWidth: "500px",
         margin: "40px auto",
         padding: "25px",
         borderRadius: "10px",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        backgroundColor: "#fff",
+        //backgroundColor: "#fff",
         textAlign: "center",
       }}
     >
@@ -201,6 +202,7 @@ export default function Settings() {
               padding: "10px",
               borderRadius: "5px",
               border: "1px solid #ccc",
+              color: "black"
             }}
             required
           />
@@ -266,6 +268,7 @@ export default function Settings() {
       >
         Back to Profile
       </button>
+      <NavBar />
     </div>
   );
 }
