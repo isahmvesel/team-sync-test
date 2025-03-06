@@ -17,7 +17,7 @@ import { useState, useEffect, useRef } from "react";
 interface EventData {
   name: string;
   allDay: boolean;
-  datetime: {
+  start: {
     seconds: number;
   };
   end: {
@@ -69,7 +69,7 @@ export default function Calendar() {
                 newEventList.push({
                   title: eventData.name,
                   allDay: eventData.allDay,
-                  start: eventData.datetime.seconds * 1000,
+                  start: eventData.start.seconds * 1000,
                   end: eventData.allDay || eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
                   description: eventData.description,
                   location: eventData.location,
