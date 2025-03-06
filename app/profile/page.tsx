@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../utils/firebaseConfig.js";
-
+import { viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Profile() {
-  const [userId, setUserId] = useState("testid"); 
-  const [image, setImage] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState("");
+  const router = useRouter();
+  const [userId, setUserId] = useState("testuser");
+  const [userData, setUserData] = useState({ email: "", username: "" });
+  const [preview, setPreview] = useState("/default-profile.jpg");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -19,86 +20,79 @@ export default function Profile() {
         setUserId("testuser");
       }
     });
-
     return () => unsubscribe();
-  }, [auth]);
-
-  const fetchProfileImage = async () => {
-    try {
-      const res = await fetch(`/api/getProfileImage?userId=${userId}`);
-      const data = await res.json();
-      if (res.ok && data.file) {
-        const timestamp = new Date().getTime();
-        setPreview(`/uploads/${data.file}?timestamp=${timestamp}`);
-      } else {
-        setPreview("/default-profile.jpg");
-      }
-    } catch {
-      setPreview("/default-profile.jpg");
-    }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchProfileImage();
+    const fetchUserData = async () => {
+      const userDoc = await viewDocument("Users", userId);
+      if (userDoc) {
+        setUserData({
+          email: userDoc.email || "",
+          username: userDoc.username || "",
+        });
+      }
+    };
+
+    const fetchProfileImage = async () => {
+      try {
+        const res = await fetch(`/api/getProfileImage?userId=${userId}`);
+        const data = await res.json();
+        if (res.ok && data.file) {
+          setPreview(`/uploads/${data.file}?timestamp=${Date.now()}`);
+        }
+      } catch {
+        setPreview("/uploads/testuser.png");
+      }
+    };
+
+    if (userId) {
+      fetchUserData();
+      fetchProfileImage();
+    }
   }, [userId]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const file = event.target.files[0];
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!image) return alert("Please select an image!");
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append("image", image);
-
-    try {
-      const res = await fetch(`/api/upload?userId=${userId}`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (res.ok) {
-        alert("Upload successful!");
-        fetchProfileImage();
-      } else {
-        const errorData = await res.json();
-        alert(`Upload failed! ${errorData.error || "Unknown error"}`);
-      }
-    } catch {
-      alert("Upload failed! Network error.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   return (
-    <div style={{ textAlign: "center", marginTop: "20px" }}>
+    <div
+      style={{
+        maxWidth: "600px",
+        margin: "40px auto",
+        padding: "20px",
+        border: "1px solid #e0e0e0",
+        borderRadius: "8px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        textAlign: "center",
+      }}
+    >
       <h1>Profile Page</h1>
-      <h2>User ID: {userId}</h2>
       <img
         src={preview}
         alt="Profile"
         width="200"
         style={{
-          borderRadius: "10px",
+          borderRadius: "50%",
           objectFit: "cover",
           border: "2px solid #ccc",
         }}
         onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
       />
-      <form onSubmit={handleUpload} style={{ marginTop: "20px" }}>
-        <input type="file" accept="image/*" onChange={handleFileChange} required />
-        <button type="submit" disabled={uploading}>
-          {uploading ? "Uploading..." : "Upload Image"}
-        </button>
-      </form>
+      <h2>User ID: {userId}</h2>
+      <p><strong>Email:</strong> {userData.email}</p>
+      <p><strong>Username:</strong> {userData.username}</p>
+      <button
+        onClick={() => router.push("/settings")}
+        style={{
+          marginTop: "20px",
+          padding: "10px 20px",
+          backgroundColor: "#0070f3",
+          color: "#fff",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
+      >
+        Go to Settings
+      </button>
     </div>
   );
 }
