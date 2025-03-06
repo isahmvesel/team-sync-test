@@ -27,7 +27,7 @@ export default function Settings() {
       if (user) {
         setUserId(user.uid);
       } else {
-        router.push("/registration");
+        router.push("/");
         setUserId("testuser");
       }
     });
@@ -140,7 +140,7 @@ export default function Settings() {
   const handleLogout = async () => {
     try {
       logout()
-      router.push("/registration");
+      router.push("/");
     } catch (error) {
       alert("Error logging out.");
     }
@@ -278,7 +278,6 @@ export default function Settings() {
       >
         Back to Profile
       </button>
-      <NavBar />
 
       <button
         onClick={handleLogout}
@@ -295,6 +294,8 @@ export default function Settings() {
       >
         Logout
       </button>
+      <NavBar />
+
     </div>
   );
 }
