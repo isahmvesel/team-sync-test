@@ -77,7 +77,7 @@ export default function Profile() {
           objectFit: "cover",
           border: "2px solid #ccc",
         }}
-        onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
+        onError={(e) => (e.currentTarget.src = "/default.png")}
       />
       <h2>User ID: {userId}</h2>
       <p><strong>Email:</strong> {userData.email}</p>

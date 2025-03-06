@@ -220,8 +220,8 @@ export default function Settings() {
         <div style={{ marginBottom: "15px", textAlign: "left" }}>
           <label style={{ fontWeight: "bold", display: "block" }}>Username:</label>
           <input
-            type="text"
-            name="name"
+            type="username"
+            name="username"
             value={formData.username}
             onChange={handleChange}
             style={{
