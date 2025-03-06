@@ -18,9 +18,9 @@ export default function Settings() {
   const [updating, setUpdating] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState("/default-profile.jpg");
+  const [preview, setPreview] = useState("/uploads/default.png");
 
-  const [isLightMode, setIsLightMode] = useState(false);
+  const [isLightMode, setIsLightMode] = localStorage.getItem("theme") === "light" ? useState(false) : useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
