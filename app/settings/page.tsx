@@ -5,16 +5,19 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../utils/firebaseConfig.js";
 import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
+import { Switch } from "@/components/ui/switch";
 
 export default function Settings() {
   const router = useRouter();
-  const [userId, setUserId] = useState("testuser");
+  const [userId, setUserId] = useState("");
   const [formData, setFormData] = useState({ email: "", username: ""});
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState("/default-profile.jpg");
+
+  const [themeType, setThemeType] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -198,6 +201,17 @@ export default function Settings() {
           />
         </div>
 
+        {/* Light/dark toggle switch */}
+        <div className="flex flex-col">
+          <div className="flex items-left space-x-6 mb-4">
+            <label style={{ fontWeight: "bold", display: "block" }}>Theme:</label>
+            <Switch 
+              checked={themeType}
+              onCheckedChange={() => setThemeType(!themeType)}
+            />
+            <span className="text-m">{themeType ? "Dark Mode" : "Light Mode"}</span>
+          </div>
+        </div>
         <button
           type="submit"
           disabled={updating}
