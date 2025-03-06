@@ -10,7 +10,7 @@ export default function Profile() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [userData, setUserData] = useState({ email: "", username: "" });
-  const [preview, setPreview] = useState("/default-profile.jpg");
+  const [preview, setPreview] = useState("/default.png");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
