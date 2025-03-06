@@ -168,12 +168,12 @@ export default function ViewEvent() {
             </Label>
           </div>
 
-          <div className="mb-1 mt-3">
+          <div className="mt-4 mb-2">
             <Label>Your RSVP Status:</Label>
             <RSVPStatus eventId={docId}></RSVPStatus>
           </div>
 
-          <div className="mb-1 mt-1">
+          <div className="mt-2 mb-4">
             <Label>View RSVP Statuses:</Label>
             <RSVPView eventId={docId}></RSVPView>
           </div>
