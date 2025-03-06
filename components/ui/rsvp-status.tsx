@@ -41,7 +41,7 @@ function RSVPStatus({ eventId }) {
           }
         }
       } catch (e) {
-        console.error("error retrieving user's inital RSVP status");
+        console.log("error retrieving user's inital RSVP status");
       }
     };
     fetchInitialStatus();
