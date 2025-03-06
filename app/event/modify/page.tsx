@@ -134,7 +134,6 @@ export default function ModifyEvent() {
   };
 
   // handle navigation when buttons are pressed
-
   const handleBack = () => {
     router.push(`/event/view?docId=${docId}`);
   };
