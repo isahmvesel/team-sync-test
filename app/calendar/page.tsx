@@ -31,7 +31,7 @@ interface EventData {
 
 interface CalendarEvent {
   title: string;
-  start: number;
+  start: number | undefined;
   end: number | undefined;
   allDay: boolean;
   description: string;
@@ -69,7 +69,7 @@ export default function Calendar() {
                 newEventList.push({
                   title: eventData.name,
                   allDay: eventData.allDay,
-                  start: eventData.start.seconds * 1000,
+                  start: eventData.end == undefined ? undefined : eventData.start.seconds * 1000,
                   end: eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
                   description: eventData.description,
                   location: eventData.location,
@@ -77,7 +77,6 @@ export default function Calendar() {
                   owner: eventData.owner,
                 });
               }
-              console.log(newEventList[0].docID);
               setEventList(newEventList);
             }
           } else {
