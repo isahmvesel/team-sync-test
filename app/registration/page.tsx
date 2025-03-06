@@ -9,8 +9,7 @@ import { getDocs, query, where, setDoc, doc} from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
 import { auth, db } from "../../utils/firebaseConfig"; 
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { useSearchParams } from "next/navigation";
-
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Register() {
   const profilePicInputRef = useRef(null);
@@ -20,6 +19,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const searchParams = useSearchParams();
+  const router = useRouter(); // Initialize useRouter for navigation
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -101,7 +101,7 @@ export default function Register() {
 
       /* redirect to profile page*/
       alert(`Email Registered: ${email}, username: ${username}`);
-      window.location.href = "/profile";
+      router.push("/profile"); // Redirect to profile page
     } catch (e) {
       console.error("Error adding document: ", e);
     }
@@ -184,6 +184,13 @@ export default function Register() {
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
           >
             Register
+          </Button>
+          {/* Back Button */}
+          <Button 
+            onClick={() => router.push("/")} 
+            className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-all mt-4"
+          >
+            Back to login
           </Button>
         </CardContent>
       </Card>
