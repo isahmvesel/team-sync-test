@@ -203,13 +203,13 @@ export default function ViewEvent() {
         <CardFooter>
           <Button
             onClick={handleBack}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+            className="my-2 mx-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded transition-all"
           >
             Back
           </Button>
           <Button
             onClick={modifyNavigation}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all"
+            className="my-2 mx-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded transition-all"
           >
             Modify
           </Button>
