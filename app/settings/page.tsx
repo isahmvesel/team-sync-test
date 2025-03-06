@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 
 export default function Settings() {
   const router = useRouter();
-  const [userId, setUserId] = useState("testuser");
+  const [userId, setUserId] = useState("");
   const [formData, setFormData] = useState({ email: "", username: ""});
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
