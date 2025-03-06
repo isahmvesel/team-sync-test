@@ -70,7 +70,7 @@ export default function Calendar() {
                   title: eventData.name,
                   allDay: eventData.allDay,
                   start: eventData.start.seconds * 1000,
-                  end: eventData.allDay || eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
+                  end: eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
                   description: eventData.description,
                   location: eventData.location,
                   docID: eventDoc.id,
