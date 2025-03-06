@@ -234,7 +234,6 @@ export default function Settings() {
           />
         </div>
 
-        {/* Light/dark toggle switch */}
         <div className="flex flex-col">
           <div className="flex items-left space-x-6 mb-4">
             <label style={{ fontWeight: "bold", display: "block" }}>Theme:</label>
