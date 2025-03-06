@@ -26,6 +26,7 @@ import {
   updateDoc,
   arrayUnion,
   getDoc,
+  DocumentReference,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { firebaseApp } from "@/utils/firebaseConfig";
@@ -124,7 +125,7 @@ export default function CreateEvent() {
         }
 
         await updateDoc(userDocRef, {
-          events: arrayUnion(`/Event/${docref.id}`),
+          events: arrayUnion(doc(db, "Event", docref.id)),
         });
       }
 
