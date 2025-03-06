@@ -51,7 +51,7 @@ function RSVPStatus({ eventId }) {
     try {
       const docRef = doc(db, "Users", uid || "uid");
       const docSnap = await getDoc(docRef);
-      const user = docSnap.data()?.name;
+      const user = docSnap.data()?.username;
 
       if (user) {
         setUsername(user);
