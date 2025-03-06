@@ -77,7 +77,6 @@ export default function Calendar() {
                   owner: eventData.owner,
                 });
               }
-              console.log(newEventList[0].docID);
               setEventList(newEventList);
             }
           } else {
