@@ -13,7 +13,7 @@ import { setDocument, viewDocument, logout } from "../../utils/firebaseHelper.js
 export default function Settings() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
-  const [formData, setFormData] = useState({ email: "", username: "" });
+  const [formData, setFormData] = useState({ email: "", username: "", isLightTheme: false});
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [image, setImage] = useState<File | null>(null);
@@ -41,8 +41,10 @@ export default function Settings() {
         if (data) {
           setFormData({
             email: data.email || "",
-            username: data.username || ""
+            username: data.username || "",
+            isLightTheme: data.isLightTheme || false,
           });
+          setIsLightMode(data.isLightTheme || false);
         }
         setLoading(false);
       }
@@ -110,6 +112,7 @@ export default function Settings() {
     e.preventDefault();
     setUpdating(true);
     try {
+      formData.isLightTheme = isLightMode;
       await setDocument("Users", userId, formData);
       alert("Profile updated successfully!");
     } catch {
