@@ -61,7 +61,7 @@ export default function Register() {
       const docRef = await setDoc(doc(db, "Users", user.uid), {
         email: email,
         username: username,
-        password: password, //password shouldnot be sent
+        isLightTheme: false,
       });    
 
       /* profile picture save with Marco API */
