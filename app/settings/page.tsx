@@ -23,6 +23,7 @@ export default function Settings() {
   const [isLightMode, setIsLightMode] = useState(false);
   const [newPassword, setNewPassword] = useState("");
 
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
