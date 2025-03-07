@@ -5,19 +5,21 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../utils/firebaseConfig.js";
 import { viewDocument } from "../../utils/firebaseHelper.js";
+import NavBar from "@/components/ui/navigation-bar";
 
 export default function Profile() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [userData, setUserData] = useState({ email: "", username: "" });
   const [preview, setPreview] = useState("/default.png");
+  const [isToggleOn, setIsToggleOn] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserId(user.uid);
       } else {
-        router.push("/");
+        router.push("/registration");
         setUserId("testuser");
       }
     });
@@ -32,6 +34,7 @@ export default function Profile() {
           email: userDoc.email || "",
           username: userDoc.username || "",
         });
+        setIsToggleOn(userDoc.toggleSetting || false);
       }
     };
 
@@ -69,17 +72,17 @@ export default function Profile() {
       <img
         src={preview}
         alt="Profile"
-        width="150"
+        width="200"
         style={{
           display: "block",
           margin: "0 auto",
           borderRadius: "50%",
           objectFit: "cover",
-          border: "3px solid #0070f3",
+          border: "2px solid #ccc",
         }}
-        onError={(e) => (e.currentTarget.src = "/default.png")}
+        onError={(e) => (e.currentTarget.src = "/default-profile.jpg")}
       />
-      {/*<h2>User ID: {userId}</h2>*/}
+      <h2>User ID: {userId}</h2>
       <p><strong>Email:</strong> {userData.email}</p>
       <p><strong>Username:</strong> {userData.username}</p>
       <button
@@ -96,6 +99,8 @@ export default function Profile() {
       >
         Go to Settings
       </button>
+      <NavBar />
+
     </div>
   );
 }

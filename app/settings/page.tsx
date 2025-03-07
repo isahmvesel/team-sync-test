@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, updatePassword, deleteUser } from "firebase/auth";
 import { auth } from "../../utils/firebaseConfig.js";
 import { Switch } from "@/components/ui/switch";
-import { doc, setDoc, getDoc } from "@firebase/firestore";
+import { doc, setDoc } from "@firebase/firestore";
 import { db } from "@/utils/firebaseConfig.js";
 import NavBar from "@/components/ui/navigation-bar";
 import { setDocument, viewDocument, logout } from "../../utils/firebaseHelper.js";
@@ -13,14 +13,14 @@ import { setDocument, viewDocument, logout } from "../../utils/firebaseHelper.js
 export default function Settings() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
-  const [formData, setFormData] = useState({ email: "", username: "" });
+  const [formData, setFormData] = useState({ email: "", username: "", isLightTheme: false});
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState("/default.png");
-
   const [isLightMode, setIsLightMode] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -41,8 +41,10 @@ export default function Settings() {
         if (data) {
           setFormData({
             email: data.email || "",
-            username: data.username || ""
+            username: data.username || "",
+            isLightTheme: data.isLightTheme || false,
           });
+          setIsLightMode(data.isLightTheme || false);
         }
         setLoading(false);
       }
@@ -110,6 +112,7 @@ export default function Settings() {
     e.preventDefault();
     setUpdating(true);
     try {
+      formData.isLightTheme = isLightMode;
       await setDocument("Users", userId, formData);
       alert("Profile updated successfully!");
     } catch {
@@ -119,42 +122,75 @@ export default function Settings() {
     }
   };
 
-  const toggleTheme = async () => {
+  const toggleTheme = () => {
     setIsLightMode(!isLightMode)
     //console.log("toggled theme");
     const user = auth.currentUser;
 
     if (user) {
       const userDocRef = doc(db, "Users", user.uid);
-      await setDoc(userDocRef, { isLightTheme: isLightMode }, { merge: true });
+      setDoc(userDocRef, { isLightTheme: isLightMode }, { merge: true });
       if (isLightMode) {
         localStorage.setItem("theme", "light");
         document.body.classList.remove("dark-mode");
+        document.body.classList.add("light-mode");
       } else {
         localStorage.setItem("theme", "dark");
+        document.body.classList.remove("light-mode");
         document.body.classList.add("dark-mode");
       }
       console.log("Theme updated!" + localStorage.getItem("theme"));
     }
-  }
+  };
+
   const handleLogout = async () => {
     try {
-      logout()
+      logout();
       router.push("/");
     } catch (error) {
       alert("Error logging out.");
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await deleteUser(user);
+        alert("Account deleted successfully!");
+        router.push("/");
+      }
+    } catch (error) {
+      alert("Error deleting account.");
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!newPassword) {
+      alert("New password is required.");
+      return;
+    }
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        // Update password without old password
+        await updatePassword(user, newPassword);
+        alert("Password updated successfully!");
+      }
+    } catch (error: any) {
+      alert(`Error updating password: ${error.message}`);
+    }
+  };
+
   return (
-    <div 
+    <div
       style={{
         maxWidth: "500px",
         margin: "40px auto",
         padding: "25px",
         borderRadius: "10px",
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        //backgroundColor: "#fff",
         textAlign: "center",
       }}
     >
@@ -238,7 +274,7 @@ export default function Settings() {
         <div className="flex flex-col">
           <div className="flex items-left space-x-6 mb-4">
             <label style={{ fontWeight: "bold", display: "block" }}>Theme:</label>
-            <Switch 
+            <Switch
               checked={isLightMode}
               onCheckedChange={toggleTheme}
             />
@@ -260,6 +296,40 @@ export default function Settings() {
           }}
         >
           {updating ? "Updating..." : "Save Changes"}
+        </button>
+      </form>
+
+      <form onSubmit={handleChangePassword}>
+        <div style={{ marginBottom: "15px", textAlign: "left" }}>
+          <label style={{ fontWeight: "bold", display: "block" }}>New Password:</label>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "5px",
+              border: "1px solid #ccc",
+              color: "black"
+            }}
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          style={{
+            padding: "10px 15px",
+            backgroundColor: "#0070f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            width: "100%",
+          }}
+        >
+          Change Password
         </button>
       </form>
 
@@ -294,6 +364,27 @@ export default function Settings() {
       >
         Logout
       </button>
+
+      <button
+        onClick={handleDeleteAccount}
+        style={{
+          marginTop: "15px",
+          padding: "10px",
+          backgroundColor: "#e74c3c",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          width: "100%",
+        }}
+      >
+        Delete Account
+      </button>
+      <div
+        style={{
+          paddingBottom: "100px",
+        }}
+      ></div>
       <NavBar />
 
     </div>
