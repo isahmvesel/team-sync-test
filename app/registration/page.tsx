@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDocs, query, where, setDoc, doc} from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
 import { auth, db } from "../../utils/firebaseConfig"; 
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { useSearchParams } from "next/navigation";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
+
+import { setDocument, viewDocument } from "../../utils/firebaseHelper.js";
 
 export default function Register() {
   const profilePicInputRef = useRef(null);
@@ -19,15 +20,6 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const emailParam = searchParams.get("email");
-    console.log("hi");
-    if (emailParam) {
-      setEmail(emailParam);
-    }
-  }, [searchParams]);
 
   /* 
    * Function that handles register button on click. Checks if email already exists and 
@@ -54,7 +46,7 @@ export default function Register() {
     try {
 
       /* Check if email already exists in the Firestore database */
-      const userQuery = query(collection(db, "Users"), where("email", "==", email));
+      const userQuery = query(collection(db, "User"), where("email", "==", email));
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
         alert("Email is already registered. Please use a different email.");
