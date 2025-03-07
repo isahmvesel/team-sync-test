@@ -11,7 +11,7 @@ async function setDocument(collectionName, docId, data) {
         //    throw new Error("User not authenticated. Cannot write document.");
         //}
 
-        await setDoc(doc(db, collectionName, docId), data);
+        await updateDoc(doc(db, collectionName, docId), data);
         console.log("Document successfully written!");
     } catch (error) {
         console.error("Error writing document: ", error);
