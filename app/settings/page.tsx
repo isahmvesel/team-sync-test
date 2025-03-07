@@ -378,8 +378,13 @@ export default function Settings() {
       >
         Delete Account
       </button>
-
+      <div
+        style={{
+          paddingBottom: "100px",
+        }}
+      ></div>
       <NavBar />
+
     </div>
   );
 }
