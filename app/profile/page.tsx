@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../utils/firebaseConfig.js";
 import { viewDocument } from "../../utils/firebaseHelper.js";
+import NavBar from "@/components/ui/navigation-bar";
 
 export default function Profile() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [userData, setUserData] = useState({ email: "", username: "" });
-  const [preview, setPreview] = useState("/default-profile.jpg");
+  const [preview, setPreview] = useState("/default.png");
+  const [isToggleOn, setIsToggleOn] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -32,6 +34,7 @@ export default function Profile() {
           email: userDoc.email || "",
           username: userDoc.username || "",
         });
+        setIsToggleOn(userDoc.toggleSetting || false);
       }
     };
 
@@ -96,6 +99,8 @@ export default function Profile() {
       >
         Go to Settings
       </button>
+      <NavBar />
+
     </div>
   );
 }
