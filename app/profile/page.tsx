@@ -11,6 +11,7 @@ export default function Profile() {
   const [userId, setUserId] = useState("");
   const [userData, setUserData] = useState({ email: "", username: "" });
   const [preview, setPreview] = useState("/default.png");
+  const [isToggleOn, setIsToggleOn] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -32,6 +33,7 @@ export default function Profile() {
           email: userDoc.email || "",
           username: userDoc.username || "",
         });
+        setIsToggleOn(userDoc.toggleSetting || false);
       }
     };
 
