@@ -17,16 +17,14 @@ import { useState, useEffect, useRef } from "react";
 interface EventData {
   name: string;
   allDay: boolean;
-  start: {
-    seconds: number;
-  };
-  end: {
-    seconds: number;
-  };
+  start: { seconds: number; };
+  end: { seconds: number; };
   description: string;
   location: string;
   docID: string;
   owner: string;
+  RSVP: { [key: string]: string; };
+  workouts: string;
 }
 
 interface CalendarEvent {
@@ -38,6 +36,8 @@ interface CalendarEvent {
   location: string;
   docID: string;
   owner: string;
+  RSVPStatus: string;
+  workout: string;
 }
 
 export default function Calendar() {
@@ -75,6 +75,24 @@ export default function Calendar() {
                 }
 
                 const eventData = eventDoc.data() as EventData;
+                
+                // get user RSVP status
+                let userRSVPStatus = "None";
+                for (const key in eventData.RSVP) {
+                  if (key === uid) {
+                    userRSVPStatus = eventData.RSVP[key];
+                    break;
+                  }
+                }
+
+                let workoutData = "None";
+                if (eventData.workouts && eventData.workouts.length > 0) {
+                  const workoutDocRef = doc(db, "Workouts", eventData.workouts[0]);
+                  const workoutDoc = await getDoc(workoutDocRef);
+                  if (workoutDoc.exists()) {
+                    workoutData = workoutDoc.data().exercises[0];
+                  }
+                }
 
                 newEventList.push({
                   title: eventData.name,
@@ -85,6 +103,8 @@ export default function Calendar() {
                   location: eventData.location,
                   docID: eventDoc.id,
                   owner: eventData.owner,
+                  RSVPStatus: userRSVPStatus,
+                  workout: workoutData,
                 });
               }
               setEventList(newEventList);
@@ -164,14 +184,25 @@ export default function Calendar() {
           events={eventList}
           eventDidMount={(info) => {
             if (info.event.extendedProps.description && info.view.type !== 'dayGridMonth') {
-              const descEl = document.createElement('p');
-
-              descEl.textContent = info.event.extendedProps.description;
+              const descEl = document.createElement('div');
+              descEl.innerHTML = `
+                <strong>Location:</strong> ${info.event.extendedProps.location || 'N/A'}<br/>
+                <strong>Description:</strong> ${info.event.extendedProps.description}<br/>
+                <strong>RSVP Status:</strong> ${info.event.extendedProps.RSVPStatus}<br/>
+                <strong>Workout:</strong> ${info.event.extendedProps.workout}
+                ... <strong>and more</strong>
+                <br/>
+                <em>Click for more details</em>
+                <br/>
+              `;
               descEl.style.fontSize = '0.9em';
               descEl.style.color = 'black';
               descEl.style.whiteSpace = 'normal';
               descEl.style.overflowWrap = 'anywhere';
               descEl.style.margin = '0';
+              descEl.style.backgroundColor = '#ffffff';
+              descEl.style.padding = '4px';
+              descEl.style.borderRadius = '3px';
               info.el.querySelector('.fc-event-title')?.appendChild(descEl);
             }
           }}
@@ -180,7 +211,16 @@ export default function Calendar() {
               const rect = info.el.getBoundingClientRect();
               const tooltipEl = document.createElement('div');
               tooltipEl.classList.add('my-event-tooltip');
-              tooltipEl.innerHTML = info.event.extendedProps.description;
+              tooltipEl.innerHTML = `
+                <strong>Location:</strong> ${info.event.extendedProps.location || 'N/A'}<br/>
+                <strong>Description:</strong> ${info.event.extendedProps.description}<br/>
+                <strong>RSVP Status:</strong> ${info.event.extendedProps.RSVPStatus}<br/>
+                <strong>Workout:</strong> ${info.event.extendedProps.workout}
+                ... <strong>and more</strong>
+                <br/>
+                <em>Click for more details</em>
+                <br/>
+              `;
               tooltipEl.style.position = 'fixed';
               tooltipEl.style.fontSize = '0.8em';
               tooltipEl.style.left = `${rect.left}px`;
