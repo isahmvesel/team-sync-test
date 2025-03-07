@@ -7,7 +7,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list';
 import { useRouter } from "next/navigation";
-import NavBar from "@/components/ui/navigation-bar";
+// import NavBar from "@/components/ui/navigation-bar";
 import { firebaseApp } from "@/utils/firebaseConfig";
 import { db } from '@/utils/firebaseConfig';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -29,7 +29,7 @@ interface EventData {
 
 interface CalendarEvent {
   title: string;
-  start: number | undefined;
+  start: number;
   end: number | undefined;
   allDay: boolean;
   description: string;
@@ -48,10 +48,13 @@ export default function Calendar() {
   const calendarRef = useRef<FullCalendar>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const uid = user.uid;
-        
+    const unsubscribe = onAuthStateChanged(auth, async () => {
+      //! TODO: Fix if statement
+      if (1) { // user) {
+
+        //! TODO: Fix hardcoded UID (For Testing)
+        const uid = 'mxO6ABVshPM5HGrbmnA1PGpeGAI2'; // user.uid;
+
         if (uid) {
           const userDocRef = doc(db, "Users", uid);
           const userDoc = await getDoc(userDocRef);
@@ -63,17 +66,7 @@ export default function Calendar() {
               // Get the events for the user
               for (let i = 0; i < userData.events.length; i++) {
                 const event = userData.events[i];
-                
-                let eventDoc;
-                try {
-                  eventDoc = await getDoc(event);
-                } catch (error) {
-                  console.error("Error getting document:", error);
-                }
-                if (!eventDoc || !eventDoc.exists()) {
-                  continue;
-                }
-
+                const eventDoc = await getDoc(event);
                 const eventData = eventDoc.data() as EventData;
                 
                 // get user RSVP status
@@ -97,8 +90,8 @@ export default function Calendar() {
                 newEventList.push({
                   title: eventData.name,
                   allDay: eventData.allDay,
-                  start: eventData.end == undefined ? undefined : eventData.start.seconds * 1000,
-                  end: eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
+                  start: eventData.datetime.seconds * 1000,
+                  end: eventData.allDay || eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
                   description: eventData.description,
                   location: eventData.location,
                   docID: eventDoc.id,
@@ -107,6 +100,7 @@ export default function Calendar() {
                   workout: workoutData,
                 });
               }
+              console.log(newEventList);
               setEventList(newEventList);
             }
           } else {
@@ -119,43 +113,33 @@ export default function Calendar() {
         console.error("User is not signed in.");
       }
     });
-    return () => {
-      unsubscribe();
-      const allTooltips = document.querySelectorAll('.my-event-tooltip');
-      allTooltips.forEach((tooltipEl) => tooltipEl.remove());
-    };
-  }, [auth]);
+    return () => unsubscribe();
+  }, []);
 
   return (
-    <div className="calendar">
-      <NavBar />
-      <div style={{ 
-        height: 'calc(80vh)',
-       }}>
-        <FullCalendar
-          ref={calendarRef}
-          themeSystem='standard'
-          plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
-          initialView="dayGridMonth"
-          navLinks={true}
-          selectable={true}
-          eventInteractive={true}
-          height="100%"
-          contentHeight="100%"
+    <>
+      {/* <NavBar /> */}
+      <FullCalendar
+        ref={calendarRef}
+        themeSystem='standard'
+        plugins={[dayGridPlugin, timeGridPlugin, listPlugin]}
+        initialView="dayGridMonth"
+        navLinks={true}
+        selectable={true}
 
-          /* Alternate Event Colors
-          eventBackgroundColor="#f2f2f2"
-          eventBorderColor="#3182ce"
-          eventTextColor="black"
-          */
+        /* Alternate Event Colors
+        eventBackgroundColor="#f2f2f2"
+        eventBorderColor="#3182ce"
+        eventTextColor="black"
+        */
 
-          customButtons={{
-            createEvent: {
-              text: 'create event',
-              click: () => {
-                router.push('/event/create');
-              },
+        customButtons={{
+          createEvent: {
+            text: 'create event',
+            click: () => {
+              router.push('/event/create');
             },
+
             list: {
               text: 'list',
               click: () => {
@@ -258,6 +242,6 @@ export default function Calendar() {
           font-weight: bold;
         }
       `}</style>
-    </div>
+    </>
   )
 }
