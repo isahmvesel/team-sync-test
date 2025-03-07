@@ -20,7 +20,8 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState("/default.png");
 
-  const [isLightMode, setIsLightMode] = useState(false);
+
+  const [isLightMode, setIsLightMode] = localStorage.getItem("theme") === "light" ? useState(false) : useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -130,8 +131,10 @@ export default function Settings() {
       if (isLightMode) {
         localStorage.setItem("theme", "light");
         document.body.classList.remove("dark-mode");
+        document.body.classList.add("light-mode");
       } else {
         localStorage.setItem("theme", "dark");
+        document.body.classList.remove("light-mode");
         document.body.classList.add("dark-mode");
       }
       console.log("Theme updated!" + localStorage.getItem("theme"));
