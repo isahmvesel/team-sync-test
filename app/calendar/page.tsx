@@ -17,14 +17,14 @@ import { useState, useEffect, useRef } from "react";
 interface EventData {
   name: string;
   allDay: boolean;
-  datetime: {
-    seconds: number;
-  };
-  end: {
-    seconds: number;
-  };
+  start: { seconds: number; };
+  end: { seconds: number; };
   description: string;
   location: string;
+  docID: string;
+  owner: string;
+  RSVP: { [key: string]: string; };
+  workouts: string;
 }
 
 interface CalendarEvent {
@@ -34,6 +34,10 @@ interface CalendarEvent {
   allDay: boolean;
   description: string;
   location: string;
+  docID: string;
+  owner: string;
+  RSVPStatus: string;
+  workout: string;
 }
 
 export default function Calendar() {
@@ -64,6 +68,24 @@ export default function Calendar() {
                 const event = userData.events[i];
                 const eventDoc = await getDoc(event);
                 const eventData = eventDoc.data() as EventData;
+                
+                // get user RSVP status
+                let userRSVPStatus = "None";
+                for (const key in eventData.RSVP) {
+                  if (key === uid) {
+                    userRSVPStatus = eventData.RSVP[key];
+                    break;
+                  }
+                }
+
+                let workoutData = "None";
+                if (eventData.workouts && eventData.workouts.length > 0) {
+                  const workoutDocRef = doc(db, "Workouts", eventData.workouts[0]);
+                  const workoutDoc = await getDoc(workoutDocRef);
+                  if (workoutDoc.exists()) {
+                    workoutData = workoutDoc.data().exercises[0];
+                  }
+                }
 
                 newEventList.push({
                   title: eventData.name,
@@ -72,6 +94,10 @@ export default function Calendar() {
                   end: eventData.allDay || eventData.end == undefined ? undefined : eventData.end.seconds * 1000,
                   description: eventData.description,
                   location: eventData.location,
+                  docID: eventDoc.id,
+                  owner: eventData.owner,
+                  RSVPStatus: userRSVPStatus,
+                  workout: workoutData,
                 });
               }
               console.log(newEventList);
@@ -113,72 +139,104 @@ export default function Calendar() {
             click: () => {
               router.push('/event/create');
             },
-          },
-          list: {
-            text: 'list',
-            click: () => {
-              const calendarApi = calendarRef.current?.getApi();
-              if (calendarApi?.view.type === 'timeGridDay') {
-                calendarApi.changeView('listDay');
-              } else if (calendarApi?.view.type === 'timeGridWeek') {
-                calendarApi.changeView('listWeek');
-              } else if (calendarApi?.view.type === 'dayGridMonth') {
-                calendarApi.changeView('listMonth');
-              } else if (calendarApi?.view.type === 'listDay') {
-                calendarApi.changeView('timeGridDay');
-              } else if (calendarApi?.view.type === 'listWeek') {
-                calendarApi.changeView('timeGridWeek');
-              } else if (calendarApi?.view.type === 'listMonth') {
-                calendarApi.changeView('dayGridMonth');
-              }
-            },
-          }
-        }}
-        headerToolbar={{
-          left: 'list timeGridDay,timeGridWeek,dayGridMonth',
-          center: 'title',
-          right: 'createEvent today prevYear,prev,next,nextYear'
-        }}
-        events={eventList}
-        eventDidMount={(info) => {
-          if (info.event.extendedProps.description && info.view.type !== 'dayGridMonth') {
-            const descEl = document.createElement('p');
 
-            descEl.textContent = info.event.extendedProps.description;
-            descEl.style.fontSize = '0.9em';
-            descEl.style.color = 'black';
-            descEl.style.whiteSpace = 'normal';
-            descEl.style.overflowWrap = 'anywhere';
-            descEl.style.margin = '0';
-            info.el.querySelector('.fc-event-title')?.appendChild(descEl);
-          }
-        }}
-        eventMouseEnter={(info) => {
-          if (info.event.extendedProps.description && info.view.type === 'dayGridMonth') {
-            const rect = info.el.getBoundingClientRect();
-            const tooltipEl = document.createElement('div');
-            tooltipEl.classList.add('my-event-tooltip');
-            tooltipEl.innerHTML = info.event.extendedProps.description;
-            tooltipEl.style.position = 'fixed';
-            tooltipEl.style.fontSize = '0.8em';
-            tooltipEl.style.left = `${rect.left}px`;
-            tooltipEl.style.top = `${rect.bottom}px`;
-            tooltipEl.style.zIndex = '9999';
-            tooltipEl.style.backgroundColor = 'white';
-            tooltipEl.style.border = '1px solid #ccc';
-            tooltipEl.style.padding = '5px';
-            tooltipEl.style.whiteSpace = 'normal';
-            document.body.appendChild(tooltipEl);
-            info.event.setExtendedProp('tooltipEl', tooltipEl);
-          }
-        }}
-        eventMouseLeave={(info) => {
-          const tooltipEl = info.event.extendedProps.tooltipEl;
-          if (tooltipEl) {
-            tooltipEl.remove();
-          }
-        }}
-      />
+            list: {
+              text: 'list',
+              click: () => {
+                const calendarApi = calendarRef.current?.getApi();
+                if (calendarApi?.view.type === 'timeGridDay') {
+                  calendarApi.changeView('listDay');
+                } else if (calendarApi?.view.type === 'timeGridWeek') {
+                  calendarApi.changeView('listWeek');
+                } else if (calendarApi?.view.type === 'dayGridMonth') {
+                  calendarApi.changeView('listMonth');
+                } else if (calendarApi?.view.type === 'listDay') {
+                  calendarApi.changeView('timeGridDay');
+                } else if (calendarApi?.view.type === 'listWeek') {
+                  calendarApi.changeView('timeGridWeek');
+                } else if (calendarApi?.view.type === 'listMonth') {
+                  calendarApi.changeView('dayGridMonth');
+                }
+              },
+            }
+          }}
+          headerToolbar={{
+            left: 'list timeGridDay,timeGridWeek,dayGridMonth',
+            center: 'title',
+            right: 'createEvent today prevYear,prev,next,nextYear'
+          }}
+          events={eventList}
+          eventDidMount={(info) => {
+            if (info.event.extendedProps.description && info.view.type !== 'dayGridMonth') {
+              const descEl = document.createElement('div');
+              descEl.innerHTML = `
+                <strong>Location:</strong> ${info.event.extendedProps.location || 'N/A'}<br/>
+                <strong>Description:</strong> ${info.event.extendedProps.description}<br/>
+                <strong>RSVP Status:</strong> ${info.event.extendedProps.RSVPStatus}<br/>
+                <strong>Workout:</strong> ${info.event.extendedProps.workout}
+                ... <strong>and more</strong>
+                <br/>
+                <em>Click for more details</em>
+                <br/>
+              `;
+              descEl.style.fontSize = '0.9em';
+              descEl.style.color = 'black';
+              descEl.style.whiteSpace = 'normal';
+              descEl.style.overflowWrap = 'anywhere';
+              descEl.style.margin = '0';
+              descEl.style.backgroundColor = '#ffffff';
+              descEl.style.padding = '4px';
+              descEl.style.borderRadius = '3px';
+              info.el.querySelector('.fc-event-title')?.appendChild(descEl);
+            }
+          }}
+          eventMouseEnter={(info) => {
+            if (info.event.extendedProps.description && info.view.type === 'dayGridMonth') {
+              const rect = info.el.getBoundingClientRect();
+              const tooltipEl = document.createElement('div');
+              tooltipEl.classList.add('my-event-tooltip');
+              tooltipEl.innerHTML = `
+                <strong>Location:</strong> ${info.event.extendedProps.location || 'N/A'}<br/>
+                <strong>Description:</strong> ${info.event.extendedProps.description}<br/>
+                <strong>RSVP Status:</strong> ${info.event.extendedProps.RSVPStatus}<br/>
+                <strong>Workout:</strong> ${info.event.extendedProps.workout}
+                ... <strong>and more</strong>
+                <br/>
+                <em>Click for more details</em>
+                <br/>
+              `;
+              tooltipEl.style.position = 'fixed';
+              tooltipEl.style.fontSize = '0.8em';
+              tooltipEl.style.left = `${rect.left}px`;
+              tooltipEl.style.top = `${rect.bottom}px`;
+              tooltipEl.style.zIndex = '9999';
+              tooltipEl.style.backgroundColor = 'white';
+              tooltipEl.style.border = '1px solid #ccc';
+              tooltipEl.style.padding = '5px';
+              tooltipEl.style.whiteSpace = 'normal';
+              document.body.appendChild(tooltipEl);
+              info.event.setExtendedProp('tooltipEl', tooltipEl);
+            }
+          }}
+          eventMouseLeave={(info) => {
+            const tooltipEl = info.event.extendedProps.tooltipEl;
+            if (tooltipEl) {
+              tooltipEl.remove();
+            }
+          }}
+          eventClick={(info) => {
+            if (auth.currentUser?.uid === info.event.extendedProps.owner) {
+              router.push(
+                `/event/modify?docId=${info.event.extendedProps.docID}`
+              );
+            } else {
+              router.push(
+                `/event/view?docId=${info.event.extendedProps.docID}`
+              );
+            }
+          }}
+        />
+      </div>
       <style jsx global>{`
         .fc .fc-toolbar-title {
           font-weight: bold;
